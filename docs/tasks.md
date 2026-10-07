@@ -8,7 +8,7 @@
 | Milestone | Tasks | Done | Status |
 |---|---|---|---|
 | Planning | 2 | 2 | ☑ |
-| M0 Setup & standards | 14 | 14 | ☑ |
+| M0 Setup & standards | 15 | 15 | ☑ |
 | M1 Sand simulation core | 6 | 6 | ☑ |
 | M2 Tank + rendering | 7 | 7 | ☑ |
 | M3 Board, box & drag | 6 | 6 | ☑ |
@@ -46,6 +46,7 @@
 | T0.12 | Sprite material check | `Sprite-Unlit-Default` renders (`SRPDefaultUnlit` pass) | ☑ |
 | T0.13 | `dotnet format` check | Both csproj files pass `--verify-no-changes --no-restore`; detection proven | ☑ |
 | T0.14 | Template cleanup | Removed `visualscripting`, `multiplayer.center`, `ai.navigation`, `collab-proxy`, `timeline`; deleted `TutorialInfo/` and `Readme.asset`; `SampleScene` kept but out of the build | ☑ |
+| T0.15 | App icon & build integration | 512×512 app icon created in `Assets/_Project/Art/Icons/app_icon.png`; assigned to Default, Standalone, and all Android tiers (Adaptive, Round, Legacy) | ☑ |
 
 ## M1 — Sand simulation core
 

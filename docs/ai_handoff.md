@@ -51,7 +51,19 @@
 | Tests | `Assets/_Project/Tests/EditMode/LevelIntegrityTests.cs` (5 automated integrity tests) |
 | Levels | `Assets/_Project/Resources/Levels/Level_15.asset`, `Level_22.asset`, `Level_30.asset`, `Level_35.asset` |
 | Patterns | `Assets/_Project/Art/Patterns/pattern_lvl15.png`, `pattern_lvl22.png`, `pattern_lvl35.png` |
+| Icons & Build | `Assets/_Project/Art/Icons/app_icon.png`, `ProjectSettings/ProjectSettings.asset` |
 | Documentation | `docs/tasks.md`, `docs/decisions.md`, `docs/ai_handoff.md` |
+
+## What was done in session 6
+
+1. **App Icon Creation (D-038):**
+   - Synthesized a 512×512 3D casual game icon (`Assets/_Project/Art/Icons/app_icon.png`) featuring a tilted glass hourglass pouring glowing multi-colored sand into a vibrant candy-colored toy box on a deep violet gradient tile.
+   - Configured texture importer with Clamp wrap mode, bilinear filtering, and alpha transparency.
+2. **Build Settings & Multi-Platform Assignment (D-038):**
+   - Assigned icon to Default Application Icon (`NamedBuildTarget.Unknown`, `IconKind.Application`).
+   - Assigned icon to Android Adaptive (API 26), Round (API 25), and Legacy tiers across all 6 density resolutions (432px down to 36px).
+   - Assigned icon to Standalone build target.
+   - All 69 EditMode tests pass.
 
 ## Next recommended tasks
 

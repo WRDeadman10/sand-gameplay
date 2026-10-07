@@ -44,6 +44,7 @@
 | [D-035](#d-035) | Complete Audio Suite: Box Pick, Drop, Drag Loop, Button Press, and Cozy Melody | ✅ Accepted |
 | [D-036](#d-036) | DOTween UI Modernization, 25% Portrait Scale Increase, and Layout Collision Fixes | ✅ Accepted |
 | [D-037](#d-037) | Level Integrity Hardening: Blocker Overlap (L50) & Phantom Box (L35/15/22/30) Bug Fixes & Automated Regression Prevention | ✅ Accepted |
+| [D-038](#d-038) | App Icon Creation and Multi-Platform Build Settings Configuration | ✅ Accepted |
 
 ---
 
@@ -459,5 +460,23 @@
     4. `AllLevels_NoContainerOverlapsAnotherContainer`: asserts no container overlaps another container.
     5. `AllLevels_AllContainersWithinBoardBounds`: asserts all containers start within valid board coordinates.
 - **Consequences:** All 50 levels pass all 5 integrity assertions with 0 errors. Future level additions are automatically guarded against phantom containers and blocker collisions.
+
+<a id="d-038"></a>
+## D-038 — App Icon Creation and Multi-Platform Build Settings Configuration
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** The application lacked an official app icon in PlayerSettings. A high-quality, professional 3D casual game icon was needed for mobile device deployment (Android/Galaxy S21) and standalone platforms.
+- **Decision:**
+  - Created a 512×512 icon asset stored at `Assets/_Project/Art/Icons/app_icon.png`:
+    - Visuals: Stylized 3D render with a deep violet gradient background, crystal glass hourglass pouring sparkling multi-colored sand into a vibrant candy-colored toy box, matching the in-game art palette and theme.
+  - Importer settings: Texture Type = Default, Alpha Is Transparency = true, Wrap Mode = Clamp, Filter = Bilinear, Max Size = 512.
+  - Configured in Unity `PlayerSettings`:
+    - Default Application Icon (`NamedBuildTarget.Unknown`, `IconKind.Application`).
+    - Android Adaptive Icon (API 26) across all 6 density tiers (432px, 324px, 216px, 162px, 108px, 81px).
+    - Android Round Icon (API 25) across all 6 density tiers (192px, 144px, 96px, 72px, 48px, 36px).
+    - Android Legacy Icon across all 6 density tiers (192px, 144px, 96px, 72px, 48px, 36px).
+    - Standalone Icon (`NamedBuildTarget.Standalone`).
+- **Consequences:** All build targets automatically use the crisp, professional app icon for APK installations and OS app drawers.
+
 
 
