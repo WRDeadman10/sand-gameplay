@@ -1,4 +1,4 @@
-﻿using SandGameplay.Container;
+using SandGameplay.Container;
 using SandGameplay.Simulation;
 
 using UnityEngine;
@@ -31,7 +31,12 @@ namespace SandGameplay.Presentation {
             }
 
             int transferred = _runner.TransferredThisFrame;
-            if (!_container.IsDocked || transferred <= 0) {
+            bool isFlowing = _container.IsDocked && transferred > 0;
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.SetPouring(isFlowing);
+            }
+
+            if (!isFlowing) {
                 _accumulator = 0f;
                 return;
             }

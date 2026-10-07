@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 
 using UnityEngine;
@@ -16,6 +16,7 @@ namespace SandGameplay.UI {
         [SerializeField] private RectTransform rays;
         [SerializeField] private RectTransform playAgainRoot;
         [SerializeField] private Button playAgainButton;
+        [SerializeField] private Button nextLevelButton;
         [SerializeField] private ParticleSystem confetti;
         [SerializeField, Min(0.01f)] private float fadeDuration = 0.25f;
         [SerializeField, Min(0.01f)] private float titleDuration = 0.55f;
@@ -32,12 +33,16 @@ namespace SandGameplay.UI {
         private bool _isButtonIdle;
 
         public event Action PlayAgainRequested;
+        public event Action NextLevelRequested;
 
         public void Show() {
             StopRoutine();
             content.SetActive(true);
             _isVisible = true;
             _isButtonIdle = false;
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayLevelComplete();
+            }
             _routine = StartCoroutine(ShowRoutine());
         }
 
@@ -54,12 +59,18 @@ namespace SandGameplay.UI {
             }
 
             playAgainButton.onClick.AddListener(HandlePlayAgainClicked);
+            if (nextLevelButton != null) {
+                nextLevelButton.onClick.AddListener(HandleNextLevelClicked);
+            }
             HideImmediate();
         }
 
         private void OnDestroy() {
             if (playAgainButton != null) {
                 playAgainButton.onClick.RemoveListener(HandlePlayAgainClicked);
+            }
+            if (nextLevelButton != null) {
+                nextLevelButton.onClick.RemoveListener(HandleNextLevelClicked);
             }
         }
 
@@ -147,7 +158,23 @@ namespace SandGameplay.UI {
                 return;
             }
 
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayUiClick();
+            }
+
             PlayAgainRequested?.Invoke();
+        }
+
+        private void HandleNextLevelClicked() {
+            if (!_isButtonIdle) {
+                return;
+            }
+
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayUiClick();
+            }
+
+            NextLevelRequested?.Invoke();
         }
     }
 }

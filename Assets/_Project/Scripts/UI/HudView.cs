@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using TMPro;
 
@@ -9,6 +9,7 @@ namespace SandGameplay.UI {
     /// <summary>Top HUD (level title, restart button) and the bobbing gameplay hint.</summary>
     public sealed class HudView : MonoBehaviour {
         [SerializeField] private Button restartButton;
+        [SerializeField] private Button menuButton;
         [SerializeField] private TMP_Text levelLabel;
         [SerializeField] private CanvasGroup hintGroup;
         [SerializeField] private RectTransform hintRect;
@@ -20,6 +21,7 @@ namespace SandGameplay.UI {
         private float _hintTargetAlpha;
 
         public event Action RestartRequested;
+        public event Action MenuRequested;
 
         public void SetLevelName(string displayName) {
             levelLabel.text = displayName;
@@ -43,11 +45,17 @@ namespace SandGameplay.UI {
             _hintRestPosition = hintRect.anchoredPosition;
             hintGroup.alpha = 0f;
             restartButton.onClick.AddListener(HandleRestartClicked);
+            if (menuButton != null) {
+                menuButton.onClick.AddListener(HandleMenuClicked);
+            }
         }
 
         private void OnDestroy() {
             if (restartButton != null) {
                 restartButton.onClick.RemoveListener(HandleRestartClicked);
+            }
+            if (menuButton != null) {
+                menuButton.onClick.RemoveListener(HandleMenuClicked);
             }
         }
 
@@ -60,7 +68,19 @@ namespace SandGameplay.UI {
         }
 
         private void HandleRestartClicked() {
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayUiClick();
+            }
+
             RestartRequested?.Invoke();
+        }
+
+        private void HandleMenuClicked() {
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayUiClick();
+            }
+
+            MenuRequested?.Invoke();
         }
     }
 }

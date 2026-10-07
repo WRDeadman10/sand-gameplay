@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 
 using SandGameplay.Container;
@@ -79,6 +79,10 @@ namespace SandGameplay.Presentation {
             EmitBurst(starBurst, center, starCount, bodyColor);
             EmitBurst(sparkleBurst, center, sparkleCount, Color.white);
             praisePopup.Show(NextPraiseWord(), center + praiseOffset, praiseColor);
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayBoxPop();
+                Audio.AudioManager.Instance.PlayPraise();
+            }
 
             float elapsed = 0f;
             while (elapsed < popDuration) {

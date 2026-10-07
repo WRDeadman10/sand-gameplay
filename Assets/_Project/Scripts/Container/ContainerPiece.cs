@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using SandGameplay.Board;
 using SandGameplay.Data;
@@ -267,6 +267,9 @@ namespace SandGameplay.Container {
             IsDocked = docked;
             if (docked) {
                 visuals.PlayDockBump();
+                if (Audio.AudioManager.Instance != null) {
+                    Audio.AudioManager.Instance.PlayDock();
+                }
                 PathOpened?.Invoke();
             } else {
                 PathClosed?.Invoke();
