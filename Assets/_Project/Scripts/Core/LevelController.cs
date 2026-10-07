@@ -39,7 +39,6 @@ namespace SandGameplay.Core {
 
         [Header("Settings")]
         [SerializeField, Range(30, 120)] private int targetFrameRate = 60;
-        [SerializeField, Min(64)] private int transferQueueCapacity = 4096;
 
         private LevelConfig _currentLevel;
         private int _currentLevelIndex;
@@ -81,19 +80,8 @@ namespace SandGameplay.Core {
                 return;
             }
 
-            completionSequencer.Stop();
-            levelCompleteView.Hide();
-            if (mainMenuView != null) {
-                mainMenuView.Hide();
-            }
-            if (Audio.AudioManager.Instance != null) {
-                Audio.AudioManager.Instance.SetPouring(false);
-            }
-            simulationRunner.ResetClock();
-            _flow.Reset();
-            tank.ResetFill();
-            container.ResetToStart(CountCapacity());
-            EnterPlaying();
+            CleanupCurrentLevel();
+            StartLevel();
             Debug.Log($"[Level] Restarted '{_currentLevel.DisplayName}'.");
         }
 
@@ -113,6 +101,7 @@ namespace SandGameplay.Core {
             }
 
             Application.targetFrameRate = targetFrameRate;
+            Application.runInBackground = true;
 
             // Build full levels list if not set in inspector
             if (allLevels == null || allLevels.Length == 0) {
@@ -159,6 +148,9 @@ namespace SandGameplay.Core {
             CleanupCurrentLevel();
         }
 
+        private readonly List<ContainerPiece> _activeContainers = new List<ContainerPiece>();
+        private readonly List<ContainerPiece> _spawnedClones = new List<ContainerPiece>();
+
         private void CleanupCurrentLevel() {
             if (!_isInitialized) {
                 return;
@@ -176,10 +168,13 @@ namespace SandGameplay.Core {
             if (Audio.AudioManager.Instance != null) {
                 Audio.AudioManager.Instance.SetPouring(false);
             }
-            if (container != null && container.Logic != null) {
-                container.Logic.Completed -= HandleContainerCompleted;
-                container.PathOpened -= HandlePathOpened;
+            for (int i = _spawnedClones.Count - 1; i >= 0; i--) {
+                if (_spawnedClones[i] != null && _spawnedClones[i] != container) {
+                    Destroy(_spawnedClones[i].gameObject);
+                }
             }
+            _spawnedClones.Clear();
+            _activeContainers.Clear();
             _isInitialized = false;
         }
 
@@ -208,24 +203,57 @@ namespace SandGameplay.Core {
                 return;
             }
 
-            int capacity = CountCapacity();
-            if (capacity <= 0) {
-                Debug.LogError($"[Level] '{_currentLevel.name}' has no grains the box can accept; check the tank pattern and box color.", this);
-                enabled = false;
-                return;
+            // Clean up previous clones
+            for (int i = _spawnedClones.Count - 1; i >= 0; i--) {
+                if (_spawnedClones[i] != null && _spawnedClones[i] != container) {
+                    Destroy(_spawnedClones[i].gameObject);
+                }
+            }
+            _spawnedClones.Clear();
+            _activeContainers.Clear();
+
+            var defs = _currentLevel.Containers;
+            var colorTotals = new Dictionary<int, int>();
+            var boxesPerColor = new Dictionary<int, int>();
+            for (int i = 0; i < defs.Count; i++) {
+                int cid = defs[i].colorId;
+                if (!colorTotals.ContainsKey(cid)) {
+                    colorTotals[cid] = _currentLevel.ColorRule.CountAcceptable(tank.Grid, cid);
+                }
+                boxesPerColor[cid] = boxesPerColor.GetValueOrDefault(cid, 0) + 1;
             }
 
-            if (!container.Initialize(board, tank, _currentLevel, palette, toneLut, capacity, _seed)) {
-                enabled = false;
-                return;
+            ContainerPiece template = container;
+
+            for (int i = 0; i < defs.Count; i++) {
+                var def = defs[i];
+                ContainerPiece piece;
+                if (i == 0 && container != null) {
+                    piece = container;
+                    piece.gameObject.SetActive(true);
+                } else {
+                    piece = Instantiate(template, template.transform.parent);
+                    piece.name = $"Container_{def.colorId}_{i}";
+                    piece.gameObject.SetActive(true);
+                    _spawnedClones.Add(piece);
+                }
+
+                int totalForColor = colorTotals.GetValueOrDefault(def.colorId, 0);
+                int numBoxes = boxesPerColor.GetValueOrDefault(def.colorId, 1);
+                int capacity = Mathf.Max(1, totalForColor / numBoxes);
+
+                piece.Initialize(board, tank, def.colorId, def.footprint, def.startCell, _currentLevel.CompletionThreshold, _currentLevel.AssistThreshold, simulation.GrainsPerCell, simulation.InteriorSpreadRadius, palette, toneLut, capacity, _seed ^ (uint)(i * 7919));
+
+                ContainerPiece captured = piece;
+                captured.Logic.Completed += () => HandleContainerCompleted(captured);
+                captured.PathOpened += HandlePathOpened;
+
+                _activeContainers.Add(piece);
             }
 
-            GrainTransferQueue queue = new GrainTransferQueue(transferQueueCapacity);
-            _flow = new SandFlowSimulation(tank.Grid, container.Interior, container.Logic, container.Spawner, queue, _currentLevel.ColorRule, _currentLevel.ContainerColorId, simulation.SlideChance, simulation.MaxGrainsPerTick, simulation.AssistGrainsPerTick);
-            simulationRunner.Bind(_flow, container, new FixedTickClock(simulation.TicksPerSecond, simulation.MaxTicksPerFrame));
-            pourSpray.Bind(container, simulationRunner, palette.GetSandColor(_currentLevel.ContainerColorId));
-            container.Logic.Completed += HandleContainerCompleted;
-            container.PathOpened += HandlePathOpened;
+            _flow = new SandFlowSimulation(tank.Grid, _currentLevel.ColorRule, simulation.SlideChance, simulation.MaxGrainsPerTick, simulation.AssistGrainsPerTick);
+            simulationRunner.Bind(_flow, _activeContainers, new FixedTickClock(simulation.TicksPerSecond, simulation.MaxTicksPerFrame));
+            pourSpray.Bind(_activeContainers.Count > 0 ? _activeContainers[0] : container, simulationRunner, palette.GetSandColor(_currentLevel.ContainerColorId));
 
             Rect boardRect = board.WorldBounds;
             Rect content = Rect.MinMaxRect(Mathf.Min(boardRect.xMin, tankRect.xMin), boardRect.yMin, Mathf.Max(boardRect.xMax, tankRect.xMax), tankRect.yMax);
@@ -233,11 +261,7 @@ namespace SandGameplay.Core {
             hud.SetLevelName(_currentLevel.DisplayName);
             _isInitialized = true;
             EnterPlaying();
-            Debug.Log($"[Level] Started '{_currentLevel.DisplayName}': tank {tank.Grid.Width}x{tank.Grid.Height} grains, box capacity {capacity} grains, seed {_seed}.");
-        }
-
-        private int CountCapacity() {
-            return _currentLevel.ColorRule.CountAcceptable(tank.Grid, _currentLevel.ContainerColorId);
+            Debug.Log($"[Level] Started '{_currentLevel.DisplayName}': tank {tank.Grid.Width}x{tank.Grid.Height} grains, {_activeContainers.Count} containers, seed {_seed}.");
         }
 
         private void EnterPlaying() {
@@ -258,25 +282,24 @@ namespace SandGameplay.Core {
             hud.HideHint();
         }
 
-        private void HandleContainerCompleted() {
+        private void HandleContainerCompleted(ContainerPiece completedPiece) {
             if (State != LevelState.Playing) {
                 return;
             }
 
-            State = LevelState.Completing;
-            dragController.SetInputEnabled(false);
-            simulationRunner.SetTransferEnabled(false);
-            tank.SetHintVisible(false);
-            hud.HideHint();
-            container.FillToTop(_currentLevel.Palette);
-            Debug.Log($"[Level] Box filled in {Time.time - _levelStartTime:0.0} s.");
-            completionSequencer.Play(container, tank, HandleSequenceFinished);
+            completedPiece.FillToTop(_currentLevel.Palette);
+            completionSequencer.Play(completedPiece, tank, () => HandlePieceFinished(completedPiece));
         }
 
-        private void HandleSequenceFinished() {
-            State = LevelState.Completed;
-            LevelProgress.SetLevelCleared(_currentLevelIndex);
-            levelCompleteView.Show();
+        private void HandlePieceFinished(ContainerPiece completedPiece) {
+            _activeContainers.Remove(completedPiece);
+            completedPiece.gameObject.SetActive(false);
+
+            if (_activeContainers.Count == 0) {
+                State = LevelState.Completed;
+                LevelProgress.SetLevelCleared(_currentLevelIndex);
+                levelCompleteView.Show();
+            }
         }
 
         private bool HasValidSetup() {

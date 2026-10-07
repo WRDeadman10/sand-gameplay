@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using SandGameplay.Board;
 using SandGameplay.Data;
@@ -29,6 +30,8 @@ namespace SandGameplay.Container {
         [SerializeField, Range(0.01f, 0.5f)] private float dockTolerance = 0.05f;
         [SerializeField, Range(0.05f, 0.5f)] private float maxStepSize = 0.2f;
 
+        public static readonly List<ContainerPiece> ActiveContainers = new List<ContainerPiece>();
+
         private BoardGrid _board;
         private SandSource _tank;
         private Vector2Int _footprint;
@@ -47,6 +50,8 @@ namespace SandGameplay.Container {
 
         public event Action PathClosed;
 
+        public GrainTransferQueue Queue { get; private set; }
+
         public SandContainer Logic { get; private set; }
 
         public SandGrid Interior { get; private set; }
@@ -56,6 +61,19 @@ namespace SandGameplay.Container {
         public int ColorId { get; private set; }
 
         public bool IsDocked { get; private set; }
+
+        public Vector2Int Footprint => _footprint;
+        public Vector2Int StartCell => _startCell;
+
+        private void OnEnable() {
+            if (!ActiveContainers.Contains(this)) {
+                ActiveContainers.Add(this);
+            }
+        }
+
+        private void OnDisable() {
+            ActiveContainers.Remove(this);
+        }
 
         public bool IsDragging {
             get {
@@ -99,22 +117,27 @@ namespace SandGameplay.Container {
         }
 
         public bool Initialize(BoardGrid board, SandSource tank, LevelConfig level, SandPalette palette, Color32[] toneLut, int capacity, uint seed) {
+            if (level == null) return false;
+            return Initialize(board, tank, level.ContainerColorId, level.ContainerFootprint, level.ContainerStartCell, level.CompletionThreshold, level.AssistThreshold, level.Simulation.GrainsPerCell, level.Simulation.InteriorSpreadRadius, palette, toneLut, capacity, seed);
+        }
+
+        public bool Initialize(BoardGrid board, SandSource tank, int colorId, Vector2Int footprint, Vector2Int startCell, float completionThreshold, float assistThreshold, int grainsPerCell, int spreadRadius, SandPalette palette, Color32[] toneLut, int capacity, uint seed) {
             if (visuals == null || interiorView == null || labelView == null || !visuals.HasReferences()) {
                 Debug.LogError("[ContainerPiece] Missing visual references; check the Container prefab.", this);
                 return false;
             }
 
-            if (board == null || tank == null || level == null || palette == null || toneLut == null) {
-                Debug.LogError("[ContainerPiece] Initialize needs a board, tank, level, palette and tone table.", this);
+            if (board == null || tank == null || palette == null || toneLut == null) {
+                Debug.LogError("[ContainerPiece] Initialize needs a board, tank, palette and tone table.", this);
                 return false;
             }
 
             _board = board;
             _tank = tank;
-            _footprint = level.ContainerFootprint;
-            _startCell = level.ContainerStartCell;
-            _grainsPerCell = level.Simulation.GrainsPerCell;
-            ColorId = level.ContainerColorId;
+            _footprint = footprint;
+            _startCell = startCell;
+            _grainsPerCell = grainsPerCell;
+            ColorId = colorId;
 
             int interiorWidth = (_footprint.x * _grainsPerCell) - (2 * wallGrains);
             int fillRows = (_footprint.y * _grainsPerCell) - bottomGrains - rimGrains;
@@ -124,8 +147,9 @@ namespace SandGameplay.Container {
             }
 
             Interior = new SandGrid(interiorWidth, fillRows + rimGrains, seed ^ 0x6A09E667u);
-            Spawner = new InteriorSpawner(Interior, fillRows, level.Simulation.InteriorSpreadRadius, seed ^ 0xBB67AE85u);
-            Logic = new SandContainer(level.CompletionThreshold, level.AssistThreshold);
+            Spawner = new InteriorSpawner(Interior, fillRows, spreadRadius, seed ^ 0xBB67AE85u);
+            Logic = new SandContainer(completionThreshold, assistThreshold);
+            Queue = new GrainTransferQueue(capacity > 0 ? capacity : 4096);
 
             float grainSize = 1f / _grainsPerCell;
             Vector2 footprintSize = new Vector2(_footprint.x, _footprint.y);
@@ -145,6 +169,7 @@ namespace SandGameplay.Container {
             Interior.Clear();
             Spawner.Reset(capacity);
             Logic.Reset(capacity);
+            Queue?.Clear();
             _isDragging = false;
             _isSnapping = false;
             _position = _board.CellToWorld(_startCell);
@@ -210,7 +235,7 @@ namespace SandGameplay.Container {
         }
 
         private void BeginSnap() {
-            if (!_board.TryFindNearestFreeCell(_position, _footprint, out Vector2Int cell)) {
+            if (!TryFindNearestFreeCell(_position, _footprint, out Vector2Int cell)) {
                 return;
             }
 
@@ -218,6 +243,34 @@ namespace SandGameplay.Container {
             _snapTo = _board.CellToWorld(cell);
             _snapElapsed = 0f;
             _isSnapping = (_snapTo - _snapFrom).sqrMagnitude > 0.000001f;
+        }
+
+        private bool TryFindNearestFreeCell(Vector2 bottomLeft, Vector2Int footprint, out Vector2Int cell) {
+            float localX = bottomLeft.x - _board.Origin.x;
+            float localY = bottomLeft.y - _board.Origin.y;
+            int floorX = Mathf.FloorToInt(localX);
+            int floorY = Mathf.FloorToInt(localY);
+            cell = new Vector2Int(floorX, floorY);
+            float bestDistance = float.MaxValue;
+            bool found = false;
+            for (int offsetY = 0; offsetY <= 1; offsetY++) {
+                for (int offsetX = 0; offsetX <= 1; offsetX++) {
+                    Vector2Int candidate = new Vector2Int(floorX + offsetX, floorY + offsetY);
+                    Rect candidateRect = new Rect(_board.CellToWorld(candidate), footprint);
+                    if (!_board.IsAreaFree(candidateRect) || CollidesWithOtherContainers(candidateRect)) {
+                        continue;
+                    }
+
+                    float dist = (candidate - new Vector2(localX, localY)).sqrMagnitude;
+                    if (dist < bestDistance) {
+                        bestDistance = dist;
+                        cell = candidate;
+                        found = true;
+                    }
+                }
+            }
+
+            return found;
         }
 
         /// <summary>Moves along X then Y in small steps so the box slides along walls instead of passing through them.</summary>
@@ -241,7 +294,8 @@ namespace SandGameplay.Container {
                 Vector2 candidate = horizontal
                     ? new Vector2(start.x + (direction * next), start.y)
                     : new Vector2(start.x, start.y + (direction * next));
-                if (!_board.IsAreaFree(new Rect(candidate, _footprint))) {
+                Rect candidateRect = new Rect(candidate, _footprint);
+                if (!_board.IsAreaFree(candidateRect) || CollidesWithOtherContainers(candidateRect)) {
                     break;
                 }
 
@@ -249,6 +303,24 @@ namespace SandGameplay.Container {
             }
 
             return direction * moved;
+        }
+
+        private bool CollidesWithOtherContainers(Rect candidateRect) {
+            const float epsilon = 0.02f;
+            for (int i = 0; i < ActiveContainers.Count; i++) {
+                var other = ActiveContainers[i];
+                if (other == null || other == this || !other.gameObject.activeSelf) {
+                    continue;
+                }
+                Rect otherRect = other.FootprintWorldRect;
+                if (candidateRect.xMin < otherRect.xMax - epsilon &&
+                    candidateRect.xMax > otherRect.xMin + epsilon &&
+                    candidateRect.yMin < otherRect.yMax - epsilon &&
+                    candidateRect.yMax > otherRect.yMin + epsilon) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void ApplyPosition() {

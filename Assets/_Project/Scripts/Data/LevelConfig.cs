@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using SandGameplay.Sand;
@@ -8,6 +8,20 @@ using SandGameplay.Transfer;
 using UnityEngine;
 
 namespace SandGameplay.Data {
+    /// <summary>Defines one draggable container piece in a level.</summary>
+    [Serializable]
+    public struct ContainerDefinition {
+        [Min(0)] public int colorId;
+        public Vector2Int footprint;
+        public Vector2Int startCell;
+
+        public ContainerDefinition(int colorId, Vector2Int footprint, Vector2Int startCell) {
+            this.colorId = colorId;
+            this.footprint = footprint;
+            this.startCell = startCell;
+        }
+    }
+
     /// <summary>Everything that defines a level: board, tank, box, rules and tuning references.</summary>
     [CreateAssetMenu(fileName = "LevelConfig", menuName = "Sand Gameplay/Level Config")]
     public sealed class LevelConfig : ScriptableObject {
@@ -20,6 +34,7 @@ namespace SandGameplay.Data {
         [SerializeField] private Vector2Int containerFootprint = new Vector2Int(2, 2);
         [SerializeField] private Vector2Int containerStartCell = new Vector2Int(2, 0);
         [SerializeField, Min(0)] private int containerColorId;
+        [SerializeField] private ContainerDefinition[] containers = Array.Empty<ContainerDefinition>();
         [SerializeField] private ContainerColorRule colorRule = ContainerColorRule.MatchColor;
         [SerializeField, Range(0.5f, 1f)] private float completionThreshold = 1f;
         [SerializeField, Range(0.5f, 1f), Tooltip("While docked above this fill ratio, the remaining acceptable grains are absorbed.")] private float assistThreshold = 0.97f;
@@ -71,6 +86,15 @@ namespace SandGameplay.Data {
         public int ContainerColorId {
             get {
                 return containerColorId;
+            }
+        }
+
+        public IReadOnlyList<ContainerDefinition> Containers {
+            get {
+                if (containers != null && containers.Length > 0) {
+                    return containers;
+                }
+                return new[] { new ContainerDefinition(containerColorId, containerFootprint, containerStartCell) };
             }
         }
 

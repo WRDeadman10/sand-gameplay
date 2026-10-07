@@ -6510,6 +6510,7 @@ GameObject:
   - component: {fileID: 778644377}
   - component: {fileID: 778644379}
   - component: {fileID: 778644378}
+  - component: {fileID: 778644381}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -6645,6 +6646,14 @@ Transform:
   - {fileID: 1887215508}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!81 &778644381
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 778644376}
+  m_Enabled: 1
 --- !u!1 &828102851
 GameObject:
   m_ObjectHideFlags: 0
@@ -24419,7 +24428,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotationX:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -24472,7 +24481,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotationY:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 0
       minScalar: 0
       maxCurve:

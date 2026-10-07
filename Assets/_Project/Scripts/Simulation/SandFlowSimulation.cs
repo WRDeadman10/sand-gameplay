@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 
 using SandGameplay.Container;
 using SandGameplay.Sand;
@@ -23,12 +24,20 @@ namespace SandGameplay.Simulation {
         private bool _scanLeftToRight = true;
         private int _unqueuedGrains;
 
+        public SandFlowSimulation(SandGrid tank, ContainerColorRule rule, float slideChance, int maxGrainsPerTick, int assistGrainsPerTick) {
+            _tank = tank ?? throw new ArgumentNullException(nameof(tank));
+            _rule = rule;
+            _slideChance = slideChance;
+            _maxGrainsPerTick = maxGrainsPerTick;
+            _assistGrainsPerTick = Math.Max(1, assistGrainsPerTick);
+        }
+
         public SandFlowSimulation(SandGrid tank, SandGrid interior, SandContainer container, InteriorSpawner spawner, GrainTransferQueue queue, ContainerColorRule rule, int colorId, float slideChance, int maxGrainsPerTick, int assistGrainsPerTick) {
             _tank = tank ?? throw new ArgumentNullException(nameof(tank));
-            _interior = interior ?? throw new ArgumentNullException(nameof(interior));
-            _container = container ?? throw new ArgumentNullException(nameof(container));
-            _spawner = spawner ?? throw new ArgumentNullException(nameof(spawner));
-            _queue = queue ?? throw new ArgumentNullException(nameof(queue));
+            _interior = interior;
+            _container = container;
+            _spawner = spawner;
+            _queue = queue;
             _rule = rule;
             _colorId = colorId;
             _slideChance = slideChance;
@@ -39,10 +48,35 @@ namespace SandGameplay.Simulation {
         /// <summary>Grains that left the tank during the last tick (outlet plus assist).</summary>
         public int TransferredLastTick { get; private set; }
 
+        public void Tick(IReadOnlyList<ContainerPiece> containers, bool transferEnabled) {
+            _tank.Step(_slideChance);
+            TransferredLastTick = 0;
+
+            if (transferEnabled && containers != null) {
+                for (int i = 0; i < containers.Count; i++) {
+                    var c = containers[i];
+                    if (c == null || !c.gameObject.activeSelf || !c.IsDocked || c.Logic.IsComplete || c.Queue == null) {
+                        continue;
+                    }
+
+                    int transferred = SandOutlet.Transfer(_tank, c.OutletSpan, _rule, c.ColorId, _maxGrainsPerTick, _scanLeftToRight, c.Queue);
+                    _scanLeftToRight = !_scanLeftToRight;
+
+                    if (c.Logic.IsAssistActive) {
+                        transferred += AbsorbRemaining(_tank, c.OutletSpan, _rule, c.ColorId, c.Queue, _assistGrainsPerTick);
+                    }
+
+                    DrainQueue(c);
+                    c.Interior.Step(_slideChance);
+                    TransferredLastTick += transferred;
+                }
+            }
+        }
+
         public void Tick(bool isDocked, OutletSpan span, bool transferEnabled) {
             _tank.Step(_slideChance);
             TransferredLastTick = 0;
-            if (transferEnabled && isDocked && !_container.IsComplete) {
+            if (transferEnabled && isDocked && _container != null && !_container.IsComplete && _queue != null) {
                 TransferredLastTick = SandOutlet.Transfer(_tank, span, _rule, _colorId, _maxGrainsPerTick, _scanLeftToRight, _queue);
                 _scanLeftToRight = !_scanLeftToRight;
                 if (_container.IsAssistActive) {
@@ -51,7 +85,9 @@ namespace SandGameplay.Simulation {
             }
 
             DrainQueue();
-            _interior.Step(_slideChance);
+            if (_interior != null) {
+                _interior.Step(_slideChance);
+            }
         }
 
         public void Reset() {
@@ -60,7 +96,46 @@ namespace SandGameplay.Simulation {
             TransferredLastTick = 0;
         }
 
+        private void DrainQueue(ContainerPiece c) {
+            if (c == null || c.Queue == null || c.Spawner == null || c.Logic == null) {
+                return;
+            }
+
+            int received = 0;
+            while (c.Queue.TryDequeue(out ushort cell, out int column)) {
+                c.Spawner.Spawn(cell, column);
+                received++;
+            }
+
+            if (received > 0) {
+                c.Logic.AddReceived(received);
+            }
+        }
+
+        private static int AbsorbRemaining(SandGrid tank, OutletSpan span, ContainerColorRule rule, int colorId, GrainTransferQueue queue, int budget) {
+            int column = ((span.TankStartX + span.TankEndX) / 2) - span.InteriorOffsetX;
+            int absorbed = 0;
+            for (int y = 0; y < tank.Height && absorbed < budget; y++) {
+                for (int x = 0; x < tank.Width && absorbed < budget; x++) {
+                    ushort cell = tank.GetCell(x, y);
+                    if (!SandCell.IsGrain(cell) || !rule.Accepts(colorId, SandCell.GetColorId(cell))) {
+                        continue;
+                    }
+
+                    tank.Remove(x, y);
+                    if (!queue.TryEnqueue(cell, column)) {
+                        break;
+                    }
+
+                    absorbed++;
+                }
+            }
+
+            return absorbed;
+        }
+
         private void DrainQueue() {
+            if (_queue == null || _spawner == null || _container == null) return;
             int received = _unqueuedGrains;
             _unqueuedGrains = 0;
             while (_queue.TryDequeue(out ushort cell, out int column)) {
@@ -89,7 +164,7 @@ namespace SandGameplay.Simulation {
                     }
 
                     _tank.Remove(x, y);
-                    if (!_queue.TryEnqueue(cell, column)) {
+                    if (_queue != null && !_queue.TryEnqueue(cell, column)) {
                         _unqueuedGrains++;
                     }
 

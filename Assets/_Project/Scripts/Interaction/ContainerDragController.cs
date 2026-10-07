@@ -1,4 +1,4 @@
-﻿using SandGameplay.Container;
+using SandGameplay.Container;
 
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,6 +21,7 @@ namespace SandGameplay.Interaction {
         private bool _isInputEnabled;
         private bool _isDragging;
         private Vector2 _grabOffset;
+        private ContainerPiece _activeContainer;
 
         public void SetInputEnabled(bool inputEnabled) {
             _isInputEnabled = inputEnabled;
@@ -30,9 +31,9 @@ namespace SandGameplay.Interaction {
         }
 
         private void Awake() {
-            _hasReferences = pointerPosition != null && pointerPosition.action != null && pointerPress != null && pointerPress.action != null && worldCamera != null && container != null;
+            _hasReferences = pointerPosition != null && pointerPosition.action != null && pointerPress != null && pointerPress.action != null && worldCamera != null;
             if (!_hasReferences) {
-                Debug.LogError("[ContainerDragController] Input actions, camera and container must be assigned.", this);
+                Debug.LogError("[ContainerDragController] Input actions and camera must be assigned.", this);
                 enabled = false;
             }
         }
@@ -60,7 +61,7 @@ namespace SandGameplay.Interaction {
                 TryBeginDrag();
             }
 
-            if (!_isDragging) {
+            if (!_isDragging || _activeContainer == null) {
                 return;
             }
 
@@ -69,7 +70,7 @@ namespace SandGameplay.Interaction {
                 return;
             }
 
-            container.DragTo(ReadPointerWorld() - _grabOffset);
+            _activeContainer.DragTo(ReadPointerWorld() - _grabOffset);
         }
 
         private void TryBeginDrag() {
@@ -78,13 +79,28 @@ namespace SandGameplay.Interaction {
             }
 
             Vector2 pointerWorld = ReadPointerWorld();
-            if (!container.ContainsPoint(pointerWorld, touchPadding)) {
+            _activeContainer = null;
+
+            var all = ContainerPiece.ActiveContainers;
+            for (int i = 0; i < all.Count; i++) {
+                var c = all[i];
+                if (c != null && c.gameObject.activeSelf && c.ContainsPoint(pointerWorld, touchPadding)) {
+                    _activeContainer = c;
+                    break;
+                }
+            }
+
+            if (_activeContainer == null && container != null && container.gameObject.activeSelf && container.ContainsPoint(pointerWorld, touchPadding)) {
+                _activeContainer = container;
+            }
+
+            if (_activeContainer == null) {
                 return;
             }
 
-            _grabOffset = pointerWorld - container.Position;
+            _grabOffset = pointerWorld - _activeContainer.Position;
             _isDragging = true;
-            container.BeginDrag();
+            _activeContainer.BeginDrag();
         }
 
         private void EndDrag() {
@@ -93,7 +109,10 @@ namespace SandGameplay.Interaction {
             }
 
             _isDragging = false;
-            container.EndDrag();
+            if (_activeContainer != null) {
+                _activeContainer.EndDrag();
+                _activeContainer = null;
+            }
         }
 
         private Vector2 ReadPointerWorld() {
