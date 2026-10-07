@@ -35,7 +35,7 @@
 | [D-026](#d-026) | Scene assembled by editor scripting; Tank and Container prefabs | ✅ Accepted |
 | [D-027](#d-027) | `InputSystem_Actions.inputactions` keeps its existing format | ✅ Accepted |
 | [D-028](#d-028) | Editor test setup: Mobile quality, S21 Game view, run-in-background | ✅ Accepted |
-| [D-029](#d-029) | MCP's Roslyn DLLs in `Assets/Plugins/Roslyn` are enabled for all platforms | ⏸ Pending user (recommend Editor-only before M7) |
+| [D-029](#d-029) | MCP's Roslyn DLLs in `Assets/Plugins/Roslyn` configured Editor-only | ✅ Accepted (applied) |
 | [D-030](#d-030) | Multi-container dynamic pooling and color partitioning | ✅ Accepted |
 | [D-031](#d-031) | 50 handcrafted levels matching `gpay.mp4` with automated collision audit | ✅ Accepted |
 | [D-032](#d-032) | Main Menu & Scrollable Level Select with clearance progress | ✅ Accepted |
@@ -335,12 +335,13 @@
 - **Consequences:** Editor visuals and framing match the target phone. Play-mode testing over MCP works while the Editor window is in the background.
 
 <a id="d-029"></a>
-## D-029 — MCP's Roslyn DLLs in `Assets/Plugins/Roslyn`
+## D-029 — MCP's Roslyn DLLs in `Assets/Plugins/Roslyn` configured Editor-only
 
-- **Date:** 2026-10-07 · **Status:** ⏸ **Pending user**
-- **Context:** `Assets/Plugins/Roslyn/` holds `Microsoft.CodeAnalysis*.dll`, `System.Collections.Immutable.dll`, `System.Reflection.Metadata.dll`, and `System.Runtime.CompilerServices.Unsafe.dll` (≈ 12.7 MB). They were placed at 11:12 by the Unity MCP setup (the C# compiler behind its `execute_code` tool), not by this project's code. Their `.meta` files contain only a GUID, so Unity uses the default plugin settings: **enabled for every platform, Android included**.
-- **Risk:** The Android build would ship these assemblies and run them through IL2CPP, which means a larger APK, a slower build, and possible IL2CPP or stripping errors.
-- **Recommendation (before M7):** mark them **Editor-only** in the Plugin Inspector (uncheck *Any Platform*, check *Editor*), or move them under an `Editor/` folder. The MCP bridge only runs in the Editor, so this does not affect it. Not changed yet because the files belong to the user's tooling.
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted (applied in Session 6)
+- **Context:** `Assets/Plugins/Roslyn/` holds `Microsoft.CodeAnalysis*.dll`, `System.Collections.Immutable.dll`, `System.Reflection.Metadata.dll`, and `System.Runtime.CompilerServices.Unsafe.dll` (≈ 12.7 MB). They were placed by the Unity MCP setup (the C# compiler behind its `execute_code` tool), not by this project's code. Their initial `.meta` files had default settings (*Any Platform* enabled), which would cause player builds (Android APK, Standalone) to compile and ship these heavy compiler DLLs through IL2CPP.
+- **Decision:**
+  - Configured all 5 Roslyn DLLs using `PluginImporter` as **Editor-only** (`SetCompatibleWithAnyPlatform(false)`, `SetCompatibleWithEditor(true)`, and explicitly excluded from Android and Standalone targets).
+- **Consequences:** The Unity MCP bridge continues running smoothly inside the Editor with Roslyn C# execution, while Android and Standalone player builds are completely isolated from 12.7 MB of compiler bloat and potential IL2CPP stripping errors.
 
 <a id="d-030"></a>
 ## D-030 — Multi-container architecture and multi-color sand tanks

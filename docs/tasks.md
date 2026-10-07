@@ -3,7 +3,7 @@
 > Update this file **during** coding (AGENTS.md §16). IDs map to milestones in [roadmap.md](roadmap.md).
 > Legend: ☐ Todo · ◐ Partly done · ☑ Done · ⏸ Deferred/blocked (reason given)
 
-## Summary (2026-10-07, end of session 3)
+## Summary (2026-10-07, end of session 6)
 
 | Milestone | Tasks | Done | Status |
 |---|---|---|---|

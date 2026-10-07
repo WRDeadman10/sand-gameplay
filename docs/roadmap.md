@@ -1,6 +1,6 @@
 # Roadmap — Color Sand Prototype
 
-> **Status (2026-10-07, session 3):** **M0–M6 and M9 done and verified in the Unity Editor.** Extended to full 50-level puzzle game parity matching `gpay.mp4`: multi-container simulation, 50 audited levels, funky Main Menu, 1–50 scrollable Level Select, in-game Pause modal with simulation freeze, universal audio Settings modal, and cute looping BGM. 64 EditMode tests pass.
+> **Status (2026-10-07, session 6):** **M0–M6, M9, M10, and M11 done and verified in the Unity Editor.** Extended to full 50-level puzzle game parity matching `gpay.mp4`, DOTween UI modernization, 25% mobile portrait scaling, tactile SFX suite, 512×512 app icon in build settings, and automated level integrity validation. **69/69 EditMode tests pass.**
 > **Next:** M7 (Galaxy S21 build and profiling) and M8 (deliverables: APK, video, zip), when the user switches to device work (D-021).
 > Task-level tracking: [tasks.md](tasks.md). Technical detail: [architecture.md](architecture.md).
 
@@ -294,6 +294,40 @@ The chart treats Day 2 as starting at "10:00" on a continuous hour axis.
 - [x] Settings modal updates audio volume and mute states dynamically with PlayerPrefs persistence.
 - [x] Background music loops continuously and pleasantly.
 - [x] 64/64 EditMode tests pass.
+
+### M10 — UI Modernization, DOTween & Interactive Audio Suite
+
+**Goal:** polish mobile portrait UI, eliminate abrupt transitions, and provide tactile acoustic feedback.
+
+**What was built:**
+1. **Universal DOTween transitions:** replaced abrupt `SetActive` toggles with smooth DOTween animations (`UIButtonJuice`, `PauseView`, `SettingsView`, `MainMenuView`, `LevelCompleteView`).
+2. **25% Mobile portrait scaling:** increased card, modal, and button dimensions across Pause, Settings, Main Menu, and Level Select for 1080×2400 portrait view.
+3. **HUD collision fixes:** resolved header text overlap into top buttons with TextMeshPro auto-sizing (22–44pt) and moved hint text below bottom sand boxes (`y = 75`).
+4. **Tactile SFX suite:** synthesized and wired `sfx_pick_box.wav`, `sfx_drop_box.wav`, `sfx_drag_loop.wav`, and `sfx_button_press.wav`.
+
+**Acceptance:**
+- [x] Zero abrupt `SetActive` toggles on modals.
+- [x] Buttons feature punch-scale feedback and audio clicks.
+- [x] Boxes emit pick, drag rumble, and drop placement thud sounds.
+- [x] No text collisions in mobile portrait resolution.
+
+### M11 — Level Integrity Hardening & Regression Tests
+
+**Goal:** audit and resolve level defects (phantom boxes and blocker collisions) and establish automated regression defenses.
+
+**What was built:**
+1. **Level 35 phantom white box fix:** repaired stray pixel at (0,0) in `pattern_lvl35.png` to green; removed phantom white container; balanced layout.
+2. **Levels 15, 22, 30 repairs:** repaired stray pixels in `pattern_lvl15.png` and `pattern_lvl22.png`; removed phantom containers from `Level_15.asset`, `Level_22.asset`, `Level_30.asset`.
+3. **Level 50 blocker fix:** confirmed pink box relocated to `{x: 0, y: 0}`, free of wall blockers.
+4. **App icon & build integration (T0.15):** 512×512 app icon created in `Assets/_Project/Art/Icons/app_icon.png`; assigned to Default, Standalone, and all Android tiers (Adaptive, Round, Legacy).
+5. **Roslyn DLL isolation (D-029):** configured `Assets/Plugins/Roslyn/*.dll` as Editor-only, preventing player build bloat while maintaining Editor MCP functionality.
+6. **Automated level integrity suite:** `LevelIntegrityTests.cs` (5 automated tests verifying minimum grains per box, matching containers, 0 blocker overlaps, 0 box overlaps, valid bounds).
+
+**Acceptance:**
+- [x] All 50 levels verified with 0 defects.
+- [x] 69/69 EditMode tests pass.
+- [x] App icon assigned in PlayerSettings across all platforms.
+- [x] Roslyn DLLs configured Editor-only.
 
 ---
 

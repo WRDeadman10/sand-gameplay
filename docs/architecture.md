@@ -523,18 +523,19 @@ Assets/_Project/
 │  ├─ Interaction/    ContainerDragController
 │  ├─ Simulation/     FixedTickClock, SandFlowSimulation, SandSimulationRunner
 │  ├─ Presentation/   CameraFitter, CompletionSequencer, PourSprayVfx, PraisePopup
-│  ├─ UI/             HudView, LevelCompleteView, MainMenuView, PauseView, SafeAreaFitter, SettingsView
+│  ├─ UI/             HudView, LevelCompleteView, MainMenuView, PauseView, SafeAreaFitter, SettingsView, UIButtonJuice
 │  ├─ Utilities/      Easing
 │  ├─ Data/           ContainerDef, LevelConfig
 │  └─ Core/           LevelController, LevelProgress, LevelState
-├─ Tests/EditMode/    SandGameplay.Tests.EditMode.asmdef + 11 suites (64 tests)
-├─ Art/               Sprites/ (17 generated PNGs), Patterns/pattern_sun.png,
+├─ Tests/EditMode/    SandGameplay.Tests.EditMode.asmdef + 12 suites (69 tests)
+├─ Art/               Icons/app_icon.png (512×512 app icon), Sprites/ (17 generated PNGs),
+│                     Patterns/ (50 level pattern textures),
 │                     Fonts/ (Lilita One TTF + OFL, SDF asset, presets), Materials/
-├─ Audio/             bgm_cute_loop.wav, sfx_*.wav (6 sound effects)
+├─ Audio/             bgm_cute_loop.wav, sfx_*.wav (10 sound effects)
 ├─ Prefabs/           Tank.prefab, Container.prefab
 └─ Resources/Levels/  50 LevelConfig assets (Level_01 to Level_50)
 Tools/ArtGen/generate_sprites.py   regenerates the sprites and the tank pattern (outside Assets/)
-generate_cute_bgm.py               regenerates the looping cute BGM WAV
+generate_audio_suite.py            regenerates the sound effects and looping cute BGM WAV
 ```
 
 - **Namespaces** mirror the folders: `SandGameplay.Audio`, `.Sand`, `.Source`, `.Transfer`, `.Board`, `.Container`, `.Interaction`, `.Simulation`, `.Presentation`, `.UI`, `.Utilities`, `.Data`, `.Core`, `.Tests`.
@@ -647,6 +648,9 @@ Techniques:
 | `DockResolverTests` | docked within tolerance · not docked below it · span clamped to the tank · span follows box x |
 | `BoardGridTests` | world ↔ cell round trip · `IsAreaFree` with walls · clamp to bounds |
 | `TankFillPatternTests` | solid fill height · band colors · pixel-art mapping (both modes) |
+| `LevelIntegrityTests` | All 50 levels verified: every container has ≥ 50 matching grains in tank (no phantom boxes) · all tank colors have accepting containers · 0 wall blocker overlaps (no immobilized boxes) · 0 container-on-container overlaps · valid board bounds |
+
+Total: **12 test suites, 69 EditMode tests** (100% passing).
 
 Run them with Test Runner (EditMode), or headless:
 `Unity.exe -batchmode -projectPath "D:/Unity/sand gameplay" -runTests -testPlatform EditMode -testResults Logs/editmode-results.xml`.

@@ -2,7 +2,7 @@
 
 > Read this first, then [architecture.md](architecture.md) (as-built design) and [roadmap.md](roadmap.md). Before coding, **summarize your understanding to the user** (AGENTS.md §16).
 
-## Current state — 2026-10-07, end of session 5
+## Current state — 2026-10-07, end of session 6
 
 | Item | State |
 |---|---|
@@ -12,6 +12,7 @@
 | Levels | **50 handcrafted levels** in `Resources/Levels/`. Verified with 0 wall-blocker overlaps, 0 container overlaps, 0 phantom containers, and 100% color-to-container coverage. |
 | Level Bug Fixes | **Bug 1 (Level 50 Blocker Overlap)** resolved: pink box free of blockers at (0,0). **Bug 2 (Level 35 Phantom White Box)** resolved: phantom box removed, texture stray pixel repaired, balanced layout at x=1, x=4. Levels 15, 22, 30 also repaired. |
 | Automated Guardrail | `LevelIntegrityTests.cs` runs 5 comprehensive checks on every level to permanently prevent future phantom boxes or blocker collisions. |
+| Tooling & Build | 512×512 app icon configured across all platforms (D-038). Roslyn DLLs in `Assets/Plugins/Roslyn/` configured Editor-only (D-029) to prevent build bloat. |
 | Audio & UI | Looping BGM (`bgm_cute_loop.wav`), full SFX suite, 25% scale increase for portrait mobile devices (1080×2400), DOTween animations everywhere, zero abrupt `SetActive`. |
 | Code Standards | 100% strictly compliant with `AGENTS.md`: 0 `var` keywords, 0 `new()` shorthand expressions, explicit types, K&R braces, full method bodies. |
 | Git | **Committed and pushed to GitHub `origin/main`**. |
@@ -63,6 +64,9 @@
    - Assigned icon to Default Application Icon (`NamedBuildTarget.Unknown`, `IconKind.Application`).
    - Assigned icon to Android Adaptive (API 26), Round (API 25), and Legacy tiers across all 6 density resolutions (432px down to 36px).
    - Assigned icon to Standalone build target.
+3. **Roslyn Compiler DLLs Configured as Editor-Only (D-029):**
+   - Configured `PluginImporter` for all 5 DLLs in `Assets/Plugins/Roslyn/` (`Microsoft.CodeAnalysis*.dll`, `System.Collections.Immutable.dll`, `System.Reflection.Metadata.dll`, `System.Runtime.CompilerServices.Unsafe.dll`) to `Editor-only` (excluded from Android and Standalone).
+   - Prevents 12.7 MB of compiler assemblies from bloating the Android APK or causing IL2CPP stripping issues, while preserving full Roslyn compilation for the Unity MCP bridge in the Editor.
    - All 69 EditMode tests pass.
 
 ## Next recommended tasks
