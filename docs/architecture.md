@@ -20,14 +20,14 @@
 ```mermaid
 flowchart TB
     subgraph Data["Data (ScriptableObjects)"]
-        LC[LevelConfig]
+        LC["LevelConfig (50 Levels)"]
         PAL[SandPalette]
         SIM[SimulationSettings]
     end
 
     subgraph Core["Engine-free core (plain classes, no UnityEngine.Object)"]
         TG["SandGrid — tank"]
-        CG["SandGrid — box interior"]
+        CG["SandGrid — box interiors"]
         DR[DockResolver]
         OUT[SandOutlet]
         Q[GrainTransferQueue]
@@ -39,11 +39,16 @@ flowchart TB
         CTL["LevelController — composition root"]
         RUN[SandSimulationRunner]
         SRC[SandSource]
-        PIECE[ContainerPiece]
+        PIECE["ContainerPiece (active pieces)"]
         DRAG[ContainerDragController]
-        VIEW["SandGridView ×2"]
+        VIEW["SandGridView"]
         SEQ[CompletionSequencer]
-        UI["HudView / LevelCompleteView"]
+        HUD[HudView]
+        COMP[LevelCompleteView]
+        MENU[MainMenuView]
+        PAUSE[PauseView]
+        SETT[SettingsView]
+        AUD[AudioManager]
     end
 
     LC --> CTL
@@ -52,8 +57,16 @@ flowchart TB
     CTL --> SRC
     CTL --> PIECE
     CTL --> RUN
-    CTL --> UI
+    CTL --> HUD
+    CTL --> COMP
+    CTL --> MENU
+    CTL --> PAUSE
+    CTL --> SETT
     CTL --> SEQ
+    HUD -.->|PauseRequested| CTL
+    PAUSE -.->|Resume / Restart / Menu| CTL
+    MENU -.->|Play / LevelSelected| CTL
+    SETT -.->|Volume / Mute| AUD
     DRAG -->|"pointer → MoveTowards"| PIECE
     PIECE -->|uses| BG
     PIECE -->|uses| DR
@@ -70,6 +83,7 @@ flowchart TB
     CG --> VIEW
     SC -->|"PercentChanged / Completed"| CTL
     CTL -->|Play| SEQ
+    CTL -->|SFX & Pour Loop| AUD
 ```
 
 ### 2.1 Per-frame order
@@ -498,6 +512,7 @@ As built:
 Assets/_Project/
 ├─ Scenes/            Game.unity
 ├─ Scripts/           SandGameplay.Runtime.asmdef
+│  ├─ Audio/          AudioManager
 │  ├─ Sand/           SandCell, SandColorDefinition, SandGrid, SandGridView, SandPalette,
 │  │                  SimulationSettings, XorShift32
 │  ├─ Source/         PixelArtColorMapping, SandSource, TankFillMode, TankFillPattern
@@ -508,21 +523,23 @@ Assets/_Project/
 │  ├─ Interaction/    ContainerDragController
 │  ├─ Simulation/     FixedTickClock, SandFlowSimulation, SandSimulationRunner
 │  ├─ Presentation/   CameraFitter, CompletionSequencer, PourSprayVfx, PraisePopup
-│  ├─ UI/             HudView, LevelCompleteView, SafeAreaFitter
+│  ├─ UI/             HudView, LevelCompleteView, MainMenuView, PauseView, SafeAreaFitter, SettingsView
 │  ├─ Utilities/      Easing
-│  ├─ Data/           LevelConfig
-│  └─ Core/           LevelController, LevelState
+│  ├─ Data/           ContainerDef, LevelConfig
+│  └─ Core/           LevelController, LevelProgress, LevelState
 ├─ Tests/EditMode/    SandGameplay.Tests.EditMode.asmdef + 11 suites (64 tests)
-├─ Art/               Sprites/ (16 generated PNGs), Patterns/pattern_sun.png,
+├─ Art/               Sprites/ (17 generated PNGs), Patterns/pattern_sun.png,
 │                     Fonts/ (Lilita One TTF + OFL, SDF asset, presets), Materials/
+├─ Audio/             bgm_cute_loop.wav, sfx_*.wav (6 sound effects)
 ├─ Prefabs/           Tank.prefab, Container.prefab
-└─ Data/              Levels/Level_Default.asset, Palettes/DefaultPalette.asset,
-                      Simulation/DefaultSimulation.asset
+└─ Resources/Levels/  50 LevelConfig assets (Level_01 to Level_50)
 Tools/ArtGen/generate_sprites.py   regenerates the sprites and the tank pattern (outside Assets/)
+generate_cute_bgm.py               regenerates the looping cute BGM WAV
 ```
 
-- **Namespaces** mirror the folders: `SandGameplay.Sand`, `.Source`, `.Transfer`, `.Board`, `.Container`, `.Interaction`, `.Simulation`, `.Presentation`, `.UI`, `.Utilities`, `.Data`, `.Core`, `.Tests`.
+- **Namespaces** mirror the folders: `SandGameplay.Audio`, `.Sand`, `.Source`, `.Transfer`, `.Board`, `.Container`, `.Interaction`, `.Simulation`, `.Presentation`, `.UI`, `.Utilities`, `.Data`, `.Core`, `.Tests`.
 - **Dependency direction**, with no cycles:
+  - `Audio` ← called by `Core`, `UI`, `Presentation`
   - `Sand` ← `Source`, `Transfer`
   - `Data` → `Sand`, `Source`, `Transfer`
   - `Container` → `Board`, `Data`, `Source`, `Transfer`, `Utilities`
@@ -533,7 +550,7 @@ Tools/ArtGen/generate_sprites.py   regenerates the sprites and the tank pattern 
 - **`SandGameplay.Runtime` references:** `Unity.InputSystem`, `Unity.TextMeshPro`, `UnityEngine.UI` (asmdef names verified in the package cache).
 - **`SandGameplay.Tests.EditMode`:** Editor-only; references `SandGameplay.Runtime`, `UnityEngine.TestRunner`, and `UnityEditor.TestRunner`; precompiled `nunit.framework.dll` via `overrideReferences`; `defineConstraints: ["UNITY_INCLUDE_TESTS"]`.
 - `Assets/_Project` keeps our content separate from the template files (`Scenes/SampleScene`, `TutorialInfo/`, `Settings/`).
-- New art and font files are LFS-tracked automatically per `.gitattributes`.
+- New art, audio, and font files are LFS-tracked automatically per `.gitattributes`.
 
 ## 16. Class catalogue
 
@@ -563,18 +580,24 @@ Tools/ArtGen/generate_sprites.py   regenerates the sprites and the tank pattern 
 | `ContainerLabelView` | MB | `n%` text from cached strings, pulse per 10 % | `SandContainer` |
 | `ContainerDragController` | MB | Pointer polling, hit-test, drag lifecycle, UI rejection | Input System, `ContainerPiece` |
 | `FixedTickClock` | C# class | Fixed-timestep accumulator with cap | — |
-| `SandFlowSimulation` | C# class | One tick: tank step → outlet → assist → accounting/spawn → interior step | grids, queue, container, spawner |
+| `SandFlowSimulation` | C# class | One tick: tank step → outlet → assist → accounting/spawn → interior step across all active containers | grids, queue, container, spawner |
 | `SandSimulationRunner` | MB | Drives the flow from `Update`; exposes `TransferredThisFrame` | `FixedTickClock`, `SandFlowSimulation` |
 | `CameraFitter` | MB | Ortho size fits the content on any aspect; background cover | `Camera` |
 | `CompletionSequencer` | MB | Scripted completion beats | `ContainerPiece`, `SandSource`, particles, `PraisePopup` |
 | `PraisePopup` | MB | Praise word pop/rise/fade | TMP |
 | `PourSprayVfx` | MB | Rim spray proportional to the grains flowing this frame | `SandSimulationRunner`, `ParticleSystem` |
-| `HudView` / `LevelCompleteView` | MB | UI screens and their animations | TMP, UGUI |
+| `HudView` | MB | Level title, restart button, pause button, bobbing hint | TMP, UGUI |
+| `LevelCompleteView` | MB | Completion panel with title, rays, particles, Next Level button | TMP, UGUI |
+| `MainMenuView` | MB | Funky title, Play, Settings, Level Select (1-50 scrollable grid with clearance checkmarks) | TMP, UGUI, `LevelProgress` |
+| `PauseView` | MB | In-game pause modal: Resume, Restart, Settings, Main Menu | UGUI |
+| `SettingsView` | MB | Audio settings modal: Music & SFX sliders and ON/OFF mute toggles | TMP, UGUI, `AudioManager` |
 | `SafeAreaFitter` | MB | Applies `Screen.safeArea` to a `RectTransform` | — |
+| `AudioManager` | MB | Central audio manager: looping cute BGM, SFX pool, pour loop, PlayerPrefs settings | `AudioSource`, `AudioClip` |
 | `Easing` | static | Easing functions | — |
-| `LevelConfig` | SO | Level data and validation | palette, settings, pattern |
-| `LevelState` | enum | Idle / Playing / Completing / Completed | — |
-| `LevelController` | MB | Composition root, state machine, restart | everything above |
+| `LevelConfig`, `ContainerDef` | SO / struct | 50 Level configs, multi-container layout, pattern, palette | — |
+| `LevelProgress` | static | Persists cleared levels in PlayerPrefs (`LevelCleared_{index}`) | — |
+| `LevelState` | enum | Idle / Playing / Completing / Completed / Paused | — |
+| `LevelController` | MB | Composition root, multi-container spawner, state machine, pause/settings wiring | everything above |
 
 ## 17. Performance budget and strategy
 

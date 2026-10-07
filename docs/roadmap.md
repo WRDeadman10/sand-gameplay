@@ -1,7 +1,7 @@
 # Roadmap — Color Sand Prototype
 
-> **Status (2026-10-07, session 2):** **M0–M6 done and verified in the Unity Editor.** The core loop, completion, restart and polish all work; there are 64 EditMode tests and 40 automated restart cycles.
-> **Next:** M7 (Galaxy S21 build and profiling) and M8 (APK, video, zip), when the user switches to device work (D-021).
+> **Status (2026-10-07, session 3):** **M0–M6 and M9 done and verified in the Unity Editor.** Extended to full 50-level puzzle game parity matching `gpay.mp4`: multi-container simulation, 50 audited levels, funky Main Menu, 1–50 scrollable Level Select, in-game Pause modal with simulation freeze, universal audio Settings modal, and cute looping BGM. 64 EditMode tests pass.
+> **Next:** M7 (Galaxy S21 build and profiling) and M8 (deliverables: APK, video, zip), when the user switches to device work (D-021).
 > Task-level tracking: [tasks.md](tasks.md). Technical detail: [architecture.md](architecture.md).
 
 ## 1. Principles
@@ -272,6 +272,28 @@ The chart treats Day 2 as starting at "10:00" on a continuous hour axis.
 - [ ] All 9 checklist items are ticked, with evidence.
 - [ ] The zip opens cleanly in Unity 6000.3.9f1 on a fresh machine (verified by extracting to a temp folder and opening it).
 - [ ] The README covers every point the brief requires.
+
+### M9 — Extended Puzzle Features (50 Levels, Full UI & Audio)
+
+**Goal:** scale the prototype into a complete 50-level puzzle game with full UI and audio parity matching `gpay.mp4`.
+
+**What was built:**
+1. **Multi-container architecture:** dynamic pooling of container piece clones based on `ContainerDef`, color-partitioned capacity, multi-box board collision, and `SandFlowSimulation` binding across all active containers.
+2. **50 handcrafted levels:** generated and stored in `Resources/Levels/` covering single-color and multi-color patterns, obstacles, and white container requirements.
+3. **Level validation:** zero wall-blocker overlaps, zero container-on-container overlaps, 100% container-to-color coverage across all 50 levels (Level 50 pink box blocker collision fixed).
+4. **Funky Main Menu & Level Select:** `MainMenuView` with floating title, funky background, and a scrollable `ScrollRect` grid displaying levels 1 to 50 with emerald green tiles and checkmark badges for cleared levels, gold highlights for current level.
+5. **Sequential progression:** `LevelProgress` persistence via `PlayerPrefs`, with automatic advancement to the next level upon clearing.
+6. **Cute background music:** procedural 36s seamless looping stereo track (`bgm_cute_loop.wav`) with music box/glockenspiel leads, marimba counter-melodies, ukulele chords, and soft percussion. Managed by `AudioManager` with volume and mute state persistence in `PlayerPrefs`.
+7. **In-game Pause modal:** top-left HUD pause button (⏸), `PauseView` modal (Resume, Restart, Settings, Main Menu), freezing sand simulation, container drag, and pour audio while paused.
+8. **Universal Settings modal:** `SettingsView` modal accessible from both Main Menu and Pause modal, with volume sliders and mute toggle buttons for Music and SFX.
+
+**Acceptance:**
+- [x] All 50 levels load and solve cleanly with 0 obstacle collisions.
+- [x] Main menu and level select navigate seamlessly; progress persists across play sessions.
+- [x] Pause button cleanly halts simulation and dragging; Resume restores state immediately.
+- [x] Settings modal updates audio volume and mute states dynamically with PlayerPrefs persistence.
+- [x] Background music loops continuously and pleasantly.
+- [x] 64/64 EditMode tests pass.
 
 ---
 

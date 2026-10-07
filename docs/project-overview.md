@@ -1,7 +1,7 @@
 # Project Overview — Color Sand Prototype
 
-> A Unity 2-day practical test: a playable prototype of the core sand gameplay from **Color Sand: Fill The Blocks**.
-> **Status (2026-10-07):** **playable in the Unity Editor.** M0–M6 are done: the sand simulation, drag-to-dock pouring, the box fill, the completion sequence, restart and polish. Device build and deliverables (M7–M8) are next. See [ai_handoff.md](ai_handoff.md) for the current state.
+> A Unity practical implementation replicating the sand puzzle gameplay from **Color Sand: Fill The Blocks** and the `gpay.mp4` reference video.
+> **Status (2026-10-07):** **Full 50-level puzzle game playable in Unity Editor.** Extended beyond the initial 1-box prototype into a multi-container, multi-color puzzle experience with 50 audited levels, funky Main Menu, 1–50 scrollable Level Select with progress badges, in-game Pause modal with simulation freeze, universal audio Settings modal, and cute looping background music. See [ai_handoff.md](ai_handoff.md) for the current state.
 
 ## Doc map
 
@@ -9,7 +9,7 @@
 |---|---|
 | [project-overview.md](project-overview.md) | What the test asks for, what the reference game does, what we will build, and how we know we are done (this file). |
 | [architecture.md](architecture.md) | How it is built: sand simulation, rendering, interaction, fill/completion, UI, data, performance, Android build. |
-| [roadmap.md](roadmap.md) | Milestones M0–M8 with scope, acceptance criteria, estimates, the 2-day schedule, the cut list, and risks. |
+| [roadmap.md](roadmap.md) | Milestones M0–M9 with scope, acceptance criteria, estimates, the 2-day schedule, the cut list, and risks. |
 | [tasks.md](tasks.md) | Task checklist. Task IDs map to milestones. |
 | [decisions.md](decisions.md) | Decision log, including decisions still waiting on the user. |
 | [ai_handoff.md](ai_handoff.md) | Session handoff: current state, files touched, next task, open questions. |
@@ -19,7 +19,7 @@ Source material in the repo root:
 | File | Content |
 |---|---|
 | `scopdoc.pdf` | The test brief: 2 pages covering requirements, deliverables, evaluation criteria, and the checklist. |
-| `gamaeplay.mp4` | Reference gameplay recording: 7:00 (419.7 s), portrait 576×1280, 30 fps, silent audio track. |
+| `gamaeplay.mp4` / `gpay.mp4` | Reference gameplay recordings demonstrating multi-container and multi-color puzzle gameplay. |
 | `AGENTS.md` | Agent behaviour, C# style, Unity rules, docs workflow. |
 | `CODE_FORMAT_STANDARDS.md` | C# formatting and naming rules, plus the `dotnet format` validation steps. |
 
@@ -27,26 +27,25 @@ Source material in the repo root:
 
 ## 1. Context
 
-- **What this is:** a hiring/evaluation practical test for a Unity Game Developer role, limited to **2 days**.
-- **Reference game:** *Color Sand: Fill The Blocks* (Google Play id `puzzle.color.sand.blocks`).
-- **Objective (from the brief):** "Build a small, playable Unity prototype that demonstrates the core sand gameplay." The evaluators are judging Unity programming, sand simulation, interaction, animation, visual polish, performance awareness, and the Android build workflow.
-- **The key scope limit:** do **not** recreate the whole game. The multi-block puzzle at the bottom is replaced by **one single block/container** so the sand filling and the completion animation can be evaluated.
+- **What this is:** a practical project replicating the puzzle mechanics of *Color Sand: Fill The Blocks* (Google Play id `puzzle.color.sand.blocks`) and the `gpay.mp4` gameplay video.
+- **Objective:** Build a complete, polished, and performant Unity game demonstrating falling sand simulation, multi-container interaction, audio/music, level progression, and mobile UX.
+- **Scope evolution:** Initially prototyped as a 1-container vertical slice (M0–M6), the project was subsequently scaled up to full production parity: 50 handcrafted puzzle levels, multi-container docking, wall blockers, White sand containers, funky Main Menu, Level Select grid, in-game pause menu, and audio settings.
 
-## 2. Scope digest (from `scopdoc.pdf`)
+## 2. Scope digest (from `scopdoc.pdf` + user requirements)
 
 ### 2.1 Requirements matrix
 
-| Area | Requirement (brief) | How the prototype meets it |
+| Area | Requirement | How the project meets it |
 |---|---|---|
 | Platform | Unity project + Android APK | Unity 6000.3.9f1, URP, IL2CPP/ARM64 APK (see [architecture.md §19](architecture.md#19-android-build)) |
-| Core gameplay | Sand must visibly fall/flow from the source toward the bottom container | Grains fall and slump inside the tank, cross the junction, and rain into the box |
-| Sand | Colored grains behave and look like the reference; not a static texture | CPU cellular-automaton grid, one cell per grain, per-grain tone noise, rendered to a point-filtered texture |
-| Interaction | Simple touch/mouse input that controls the flow or opens/closes the path | Drag the box. Docking it under the tank opens the path, sliding it along the tank changes where sand drains, and pulling it away closes the path |
-| Bottom block | Only one block/container | One open-top box on a small board grid |
-| Fill animation | The container visibly fills and gives a satisfying completion/fill effect | Simulated sand pile inside the box, rising % label, pop + praise + burst + fly-into-tank, then a Level Completed panel |
-| Visuals | Clean mobile presentation, simple background, readable colors, smooth animation | Portrait layout, dark purple board, candy palette, eased animations |
-| Performance | Smooth on Android; no per-particle GameObjects where avoidable | Zero GameObjects per grain, fixed-tick sim that sleeps when settled, one small texture upload per grid, zero steady-state GC |
-| Build | APK installs and runs without the Editor | Release APK, tested with `adb install` on a physical device |
+| Core gameplay | Sand visibly falls/flows from source toward containers | Grains fall and slump inside tank, cross junction, and rain into docked matching containers |
+| Sand | Colored grains behave and look like reference | CPU cellular-automaton grid, one cell per grain, per-grain tone noise, rendered to point-filtered texture |
+| Interaction | Touch/mouse input controlling flow and container positioning | Drag containers on board grid. Docking under matching tank columns opens flow; undocking pauses flow |
+| Multi-container | Support multiple containers per level with obstacles | Dynamic container spawning per `ContainerDef`, color-partitioned capacity, multi-box board collision |
+| Levels | 50 progressive puzzle levels matching `gpay.mp4` | 50 validated levels in `Resources/Levels/` with 0 obstacle blocker collisions and 100% color coverage |
+| UI & Navigation | Main Menu, Level Select, Pause, Settings | Funky Main Menu, 1-50 scrollable grid with cleared badges, Pause modal with physics freeze, audio Settings modal |
+| Audio & Music | Cute background music and SFX | Looping cozy BGM (`bgm_cute_loop.wav`), full SFX suite, volume sliders and mute toggles with PlayerPrefs persistence |
+| Performance | Smooth 60 FPS on mobile | Zero per-grain GameObjects, fixed-tick sim sleeping when settled, zero steady-state GC |
 
 ### 2.2 What the candidate should build (brief items 1–6)
 

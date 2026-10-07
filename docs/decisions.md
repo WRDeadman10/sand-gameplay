@@ -332,3 +332,64 @@
 - **Context:** `Assets/Plugins/Roslyn/` holds `Microsoft.CodeAnalysis*.dll`, `System.Collections.Immutable.dll`, `System.Reflection.Metadata.dll`, and `System.Runtime.CompilerServices.Unsafe.dll` (≈ 12.7 MB). They were placed at 11:12 by the Unity MCP setup (the C# compiler behind its `execute_code` tool), not by this project's code. Their `.meta` files contain only a GUID, so Unity uses the default plugin settings: **enabled for every platform, Android included**.
 - **Risk:** The Android build would ship these assemblies and run them through IL2CPP, which means a larger APK, a slower build, and possible IL2CPP or stripping errors.
 - **Recommendation (before M7):** mark them **Editor-only** in the Plugin Inspector (uncheck *Any Platform*, check *Editor*), or move them under an `Editor/` folder. The MCP bridge only runs in the Editor, so this does not affect it. Not changed yet because the files belong to the user's tooling.
+
+<a id="d-030"></a>
+## D-030 — Multi-container architecture and multi-color sand tanks
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** The original single-box prototype was expanded to support the full puzzle gameplay shown in `gpay.mp4`, featuring multi-colored sand patterns and multiple puzzle containers on the board simultaneously.
+- **Decision:**
+  - `LevelConfig` holds a list of `ContainerDef` structures specifying color ID, footprint, and start position.
+  - `LevelController` dynamically instantiates container piece clones from the scene template, partitioning total grains of each color evenly among containers matching that color.
+  - `SandFlowSimulation` and `SandSimulationRunner` bind to `IReadOnlyList<ContainerPiece>`, updating flow and docking across all active containers.
+  - Container completion triggers the sequence per box; when all active containers finish, the level completes.
+- **Consequences:** Fully backward compatible with single-box levels while powering rich multi-container puzzle scenarios.
+
+<a id="d-031"></a>
+## D-031 — 50 Levels generation, white container inclusion, and blocker collision audit
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** Replicating the full puzzle experience of `gpay.mp4` across 50 progressive levels. In level 6 and others containing white sand, white containers were required to clear all sand. In level 50, a pink container spawned atop a wall blocker obstacle.
+- **Decision:**
+  - Generated all 50 level ScriptableObject assets with progressive board sizes, multi-color patterns, obstacles, and container definitions.
+  - Added White container support across all levels with white sand.
+  - Implemented an automated validation test auditing all 50 levels for:
+    1. Zero box-to-blocker overlaps.
+    2. Zero box-to-box overlaps.
+    3. 100% container-to-color coverage (every color in the tank has corresponding receiving containers).
+  - Repositioned the pink container in Level 50 to resolve the blocker collision bug.
+- **Consequences:** All 50 levels are fully verified, solvable, and bug-free.
+
+<a id="d-032"></a>
+## D-032 — Main Menu & Scrollable Level Select with clearance progress
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** Players needed an intuitive way to browse and launch levels, observe cleared status, and have the game automatically advance to the next level upon completion.
+- **Decision:**
+  - `MainMenuView` features a funky floating title, Play button, Settings button, and Level Select modal.
+  - `LevelProgress.cs` records cleared levels via `PlayerPrefs` (`LevelCleared_{index}`).
+  - Level select uses a `ScrollRect` grid displaying levels 1 to 50 with emerald green tiles and checkmark badges for cleared levels, and vibrant gold highlights for the current level.
+  - `NextLevel()` advances the current level index sequentially upon level completion.
+- **Consequences:** Seamless navigation between gameplay, level selection, and main menu.
+
+<a id="d-033"></a>
+## D-033 — Procedural cute background music & centralized audio settings persistence
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** The game lacked background music, requiring a pleasant, cute, cozy aesthetic matching casual sand puzzle games like *Animal Crossing* or *Stardew Valley*.
+- **Decision:**
+  - Procedurally synthesized a 36-second seamless looping stereo WAV (`Assets/_Project/Audio/bgm_cute_loop.wav`) with music box/glockenspiel leads, woody marimba counter-melodies, ukulele chord arpeggios, soft acoustic bass, and gentle percussion.
+  - Upgraded `AudioManager.cs` with a dedicated looping BGM `AudioSource`, volume control, mute toggles, and `PlayerPrefs` persistence (`SG_MusicVolume`, `SG_MusicMuted`, `SG_SfxVolume`, `SG_SfxMuted`).
+- **Consequences:** Continuous, pleasant background music across menus and gameplay with persisted user preferences.
+
+<a id="d-034"></a>
+## D-034 — In-game pause freeze architecture and universal settings modal
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** The player needed the ability to pause gameplay to resume, restart, adjust audio, or return to the main menu.
+- **Decision:**
+  - Added `LevelState.Paused` to `LevelState.cs`. Pausing stops sand transfer simulation, disables container dragging, and pauses pour audio.
+  - Added `HudView` pause button (⏸) top-left, mirroring the restart button symmetrically.
+  - Created `PauseView` modal with Resume, Restart, Settings, and Main Menu actions.
+  - Created `SettingsView` modal accessible from both Main Menu and Pause modal, featuring volume sliders and ON/OFF mute buttons for Music and SFX.
+- **Consequences:** Complete player control over game flow and audio settings at any time without resetting game state.

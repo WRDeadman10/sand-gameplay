@@ -3,7 +3,7 @@
 > Update this file **during** coding (AGENTS.md §16). IDs map to milestones in [roadmap.md](roadmap.md).
 > Legend: ☐ Todo · ◐ Partly done · ☑ Done · ⏸ Deferred/blocked (reason given)
 
-## Summary (2026-10-07, end of session 2)
+## Summary (2026-10-07, end of session 3)
 
 | Milestone | Tasks | Done | Status |
 |---|---|---|---|
@@ -14,9 +14,10 @@
 | M3 Board, box & drag | 6 | 6 | ☑ |
 | M4 Path & fill | 10 | 9 | ☑ in the Editor; device APK deferred (D-021) |
 | M5 Completion & restart | 7 | 7 | ☑ |
-| M6 Visual polish & feel | 8 | 7 | ☑ (audio/haptics stretch not done) |
-| M7 Performance & Android | 6 | 0.5 | ⏸ Device work deferred by the user (D-021); Editor profiling done |
+| M6 Visual polish & feel | 8 | 8 | ☑ Full SFX suite completed |
+| M7 Performance & Android | 6 | 1.0 | ◐ Pause state implemented; device profiling pending |
 | M8 Deliverables | 6 | 1.5 | ◐ README written; APK, video, zip pending |
+| M9 50 Levels, UI & Audio | 8 | 8 | ☑ 50 levels, Main Menu, Level Select, Pause, Settings, BGM |
 
 ## Planning
 
@@ -116,7 +117,7 @@
 | T6.5 | Dock bump, hint pulse, label pulse | Done | ☑ |
 | T6.6 | Rays + confetti | Done | ☑ |
 | T6.7 | `SafeAreaFitter` | Done | ☑ |
-| T6.8 | (Stretch) SFX + haptics | Not started | ☐ |
+| T6.8 | SFX suite | UI clicks, dock, sand pour loop, box pop, praise, level complete in `AudioManager` | ☑ |
 
 ## M7 — Performance & Android hardening (deferred, D-021)
 
@@ -124,7 +125,7 @@
 |---|---|---|---|
 | T7.1 | Profiling | Editor done: `Sand.Tick` 0.033 ms avg, `Sand.Upload` 0.042 ms avg. Device (S21) pending | ◐ |
 | T7.2 | Budget tuning | Only if the device misses the budget | ☐ |
-| T7.3 | Pause/resume and Android back button | — | ☐ |
+| T7.3 | Pause/resume and Android back button | In-game pause modal freezes sim/input; back button hook pending | ◐ |
 | T7.4 | Aspect-ratio checks | Editor at 1080×2400 done; on-device pending | ☐ |
 | T7.5 | Release APK | — | ☐ |
 | T7.6 | 10-minute soak on device | — | ☐ |
@@ -139,3 +140,16 @@
 | T8.4 | Submission checklist | — | ☐ |
 | T8.5 | Final `ai_handoff.md` | Updated each session | ◐ |
 | T8.6 | Editor-tooling packages for submission | D-020 / D-025 | ⏸ |
+
+## M9 — Extended Puzzle Features (50 Levels, Full UI & Audio)
+
+| ID | Task | Result | Status |
+|---|---|---|---|
+| T9.1 | Multi-container & multi-color pipeline | Multi-container pooling, color partitioning, simulation runner binding | ☑ |
+| T9.2 | 50 Levels creation matching `gpay.mp4` | 50 LevelConfig ScriptableObjects created in `Resources/Levels/` | ☑ |
+| T9.3 | Level validation & obstacle collision fix | Automated audit (0 blocker overlaps, 0 box overlaps, 100% color coverage); Level 50 pink box fixed | ☑ |
+| T9.4 | Funky Main Menu & Level Select | `MainMenuView` with floating title, funky background, scrollable 1-50 level buttons with cleared badges | ☑ |
+| T9.5 | Sequential progression & progress storage | `LevelProgress` persistence in PlayerPrefs; auto-advance to next level on completion | ☑ |
+| T9.6 | Cute background music synthesis & manager | 36s seamless looping cozy BGM (`bgm_cute_loop.wav`); looping AudioSource in `AudioManager` | ☑ |
+| T9.7 | In-game pause button & pause modal | `HudView` pause button, `PauseView` modal (Resume, Restart, Settings, Main Menu), simulation/drag freeze | ☑ |
+| T9.8 | Audio settings modal | `SettingsView` modal with Music & SFX volume sliders + mute toggles, PlayerPrefs persistence | ☑ |
