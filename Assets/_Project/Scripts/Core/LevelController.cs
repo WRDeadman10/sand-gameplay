@@ -72,6 +72,7 @@ namespace SandGameplay.Core {
             }
 
             int nextIndex = (_currentLevelIndex + 1) % allLevels.Length;
+            Debug.Log($"[LevelController] NextLevel requested: advancing from index {_currentLevelIndex} to {nextIndex} ({allLevels[nextIndex].DisplayName}).");
             LoadLevel(nextIndex);
         }
 
@@ -84,6 +85,9 @@ namespace SandGameplay.Core {
             levelCompleteView.Hide();
             if (mainMenuView != null) {
                 mainMenuView.Hide();
+            }
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.SetPouring(false);
             }
             simulationRunner.ResetClock();
             _flow.Reset();
@@ -146,6 +150,9 @@ namespace SandGameplay.Core {
 
         private void Start() {
             StartLevel();
+            if (mainMenuView != null && mainMenuView.IsOpen) {
+                OpenMenu();
+            }
         }
 
         private void OnDestroy() {
@@ -162,6 +169,12 @@ namespace SandGameplay.Core {
             }
             if (levelCompleteView != null) {
                 levelCompleteView.Hide();
+            }
+            if (mainMenuView != null) {
+                mainMenuView.Hide();
+            }
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.SetPouring(false);
             }
             if (container != null && container.Logic != null) {
                 container.Logic.Completed -= HandleContainerCompleted;

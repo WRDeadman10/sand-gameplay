@@ -52,25 +52,33 @@ namespace SandGameplay.UI {
         }
 
         private void Awake() {
-            if (content == null || canvasGroup == null || title == null || rays == null || playAgainRoot == null || playAgainButton == null) {
+            if (content == null || canvasGroup == null || title == null || rays == null || playAgainRoot == null) {
                 Debug.LogError("[LevelCompleteView] Missing UI references.", this);
                 enabled = false;
                 return;
             }
 
-            playAgainButton.onClick.AddListener(HandlePlayAgainClicked);
             if (nextLevelButton != null) {
                 nextLevelButton.onClick.AddListener(HandleNextLevelClicked);
             }
+
+            // Only hook playAgainButton for replay if it is a distinct button from nextLevelButton
+            if (playAgainButton != null && playAgainButton != nextLevelButton) {
+                playAgainButton.onClick.AddListener(HandlePlayAgainClicked);
+            } else if (playAgainButton != null && nextLevelButton == null) {
+                nextLevelButton = playAgainButton;
+                nextLevelButton.onClick.AddListener(HandleNextLevelClicked);
+            }
+
             HideImmediate();
         }
 
         private void OnDestroy() {
-            if (playAgainButton != null) {
-                playAgainButton.onClick.RemoveListener(HandlePlayAgainClicked);
-            }
             if (nextLevelButton != null) {
                 nextLevelButton.onClick.RemoveListener(HandleNextLevelClicked);
+            }
+            if (playAgainButton != null && playAgainButton != nextLevelButton) {
+                playAgainButton.onClick.RemoveListener(HandlePlayAgainClicked);
             }
         }
 
