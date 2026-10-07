@@ -85,9 +85,12 @@ namespace SandGameplay.UI {
                 
                 TMP_Text label = btn.GetComponentInChildren<TMP_Text>();
                 if (label != null) {
-                    label.text = cfg != null ? cfg.DisplayName : $"Level {i + 1}";
+                    label.text = (i + 1).ToString();
+                    label.fontSize = 32;
                     if (i == currentLevelIndex) {
-                        label.color = new Color(1f, 0.85f, 0.3f);
+                        label.color = new Color(1f, 0.9f, 0.2f);
+                    } else {
+                        label.color = Color.white;
                     }
                 }
 
