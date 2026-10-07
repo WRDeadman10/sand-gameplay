@@ -15,9 +15,9 @@ MonoBehaviour:
   displayName: Level 42 - Coral Reef
   boardSize: {x: 8, y: 8}
   wallCells:
-  - {x: 1, y: 2}
-  - {x: 3, y: 3}
-  - {x: 6, y: 2}
+  - {x: 1, y: 4}
+  - {x: 3, y: 4}
+  - {x: 6, y: 4}
   tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:

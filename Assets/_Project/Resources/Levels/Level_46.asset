@@ -15,10 +15,10 @@ MonoBehaviour:
   displayName: Level 46 - Royal Crest
   boardSize: {x: 8, y: 8}
   wallCells:
-  - {x: 1, y: 3}
-  - {x: 3, y: 3}
-  - {x: 4, y: 3}
-  - {x: 6, y: 3}
+  - {x: 1, y: 4}
+  - {x: 3, y: 4}
+  - {x: 4, y: 4}
+  - {x: 6, y: 4}
   tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:

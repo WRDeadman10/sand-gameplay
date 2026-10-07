@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Level 47 - Four Seasons
   boardSize: {x: 8, y: 8}
   wallCells:
-  - {x: 3, y: 3}
-  - {x: 4, y: 3}
+  - {x: 3, y: 4}
+  - {x: 4, y: 4}
   tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:

@@ -15,9 +15,8 @@ MonoBehaviour:
   displayName: Level 32 - Slalom Alley
   boardSize: {x: 8, y: 8}
   wallCells:
-  - {x: 2, y: 2}
-  - {x: 5, y: 4}
-  - {x: 2, y: 6}
+  - {x: 2, y: 4}
+  - {x: 5, y: 5}
   tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:

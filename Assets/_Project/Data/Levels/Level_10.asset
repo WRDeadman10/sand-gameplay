@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Level 10 - Puzzle Master
   boardSize: {x: 7, y: 8}
   wallCells:
-  - {x: 0, y: 2}
-  - {x: 6, y: 2}
+  - {x: 0, y: 3}
+  - {x: 6, y: 3}
   tankSize: {x: 7, y: 2}
   tankColumnOffset: 0
   tankPattern:

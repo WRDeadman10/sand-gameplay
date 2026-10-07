@@ -25,12 +25,12 @@ MonoBehaviour:
     pixelArt: {fileID: 2800000, guid: 3290f6ee000a14c40a60cde73a5a6f52, type: 3}
     pixelArtMapping: 1
   containerFootprint: {x: 2, y: 2}
-  containerStartCell: {x: 1, y: 0}
+  containerStartCell: {x: 0, y: 0}
   containerColorId: 2
   containers:
   - colorId: 2
     footprint: {x: 2, y: 2}
-    startCell: {x: 1, y: 0}
+    startCell: {x: 0, y: 0}
   - colorId: 5
     footprint: {x: 2, y: 2}
     startCell: {x: 3, y: 0}

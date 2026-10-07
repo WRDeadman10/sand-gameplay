@@ -15,7 +15,7 @@ MonoBehaviour:
   displayName: Level 15 - Island Lagoon
   boardSize: {x: 7, y: 8}
   wallCells:
-  - {x: 3, y: 3}
+  - {x: 3, y: 4}
   tankSize: {x: 7, y: 2}
   tankColumnOffset: 0
   tankPattern:

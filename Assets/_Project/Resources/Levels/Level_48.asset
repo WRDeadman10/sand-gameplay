@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Level 48 - Cosmic Nebula
   boardSize: {x: 8, y: 8}
   wallCells:
-  - {x: 2, y: 3}
-  - {x: 5, y: 3}
+  - {x: 2, y: 4}
+  - {x: 5, y: 4}
   tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:

@@ -15,8 +15,8 @@ MonoBehaviour:
   displayName: Level 22 - Desert Oasis
   boardSize: {x: 7, y: 8}
   wallCells:
-  - {x: 0, y: 3}
-  - {x: 6, y: 3}
+  - {x: 0, y: 4}
+  - {x: 6, y: 4}
   tankSize: {x: 7, y: 2}
   tankColumnOffset: 0
   tankPattern:

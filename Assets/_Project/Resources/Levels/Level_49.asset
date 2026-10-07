@@ -15,10 +15,10 @@ MonoBehaviour:
   displayName: Level 49 - Grandmaster Trial
   boardSize: {x: 8, y: 8}
   wallCells:
-  - {x: 1, y: 2}
-  - {x: 3, y: 3}
-  - {x: 4, y: 3}
-  - {x: 6, y: 2}
+  - {x: 1, y: 4}
+  - {x: 3, y: 5}
+  - {x: 4, y: 5}
+  - {x: 6, y: 4}
   tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:
@@ -37,16 +37,16 @@ MonoBehaviour:
     startCell: {x: 0, y: 0}
   - colorId: 2
     footprint: {x: 2, y: 2}
-    startCell: {x: 2, y: 0}
+    startCell: {x: 3, y: 0}
   - colorId: 0
     footprint: {x: 2, y: 2}
-    startCell: {x: 4, y: 0}
+    startCell: {x: 6, y: 0}
   - colorId: 3
     footprint: {x: 2, y: 2}
-    startCell: {x: 6, y: 0}
+    startCell: {x: 0, y: 2}
   - colorId: 5
     footprint: {x: 2, y: 2}
-    startCell: {x: 3, y: 5}
+    startCell: {x: 6, y: 2}
   colorRule: 0
   completionThreshold: 1
   assistThreshold: 0.8

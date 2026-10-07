@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Level_18
   m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Data.LevelConfig
   displayName: Level 18 - Wide Stride
-  boardSize: {x: 7, y: 8}
+  boardSize: {x: 8, y: 8}
   wallCells: []
-  tankSize: {x: 7, y: 2}
+  tankSize: {x: 8, y: 2}
   tankColumnOffset: 0
   tankPattern:
     mode: 1
