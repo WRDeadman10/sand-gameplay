@@ -2,68 +2,55 @@
 
 > Read this first, then [architecture.md](architecture.md) (as-built design) and [roadmap.md](roadmap.md). Before coding, **summarize your understanding to the user** (AGENTS.md §16).
 
-## Current state — 2026-10-07, end of session 4
+## Current state — 2026-10-07, end of session 5
 
 | Item | State |
 |---|---|
-| Phase | **M0–M6, M9, and M10 done and verified in the Unity Editor.** M7 (device) and M8 (deliverables) are next, when the user asks (D-021). |
+| Phase | **M0–M6, M9, M10, and M11 done and verified in the Unity Editor.** M7 (device) and M8 (deliverables) are next, when the user asks (D-021). |
 | Game | `Assets/_Project/Scenes/Game.unity` (the only build scene). Full 50-level puzzle loop, multi-container docking & color flow, funky Main Menu, 1–50 scrollable Level Select with clearance tracking, in-game Pause modal, universal audio Settings modal, rich DOTween transitions, interactive SFX suite, and cozy looping BGM. |
-| Tests | **64/64 EditMode tests pass** (`SandGameplay.Tests.EditMode`, ~1.5 s). |
-| Levels | **50 handcrafted levels** in `Resources/Levels/`. Verified with 0 wall-blocker overlaps, 0 container overlaps, and 100% color-to-container coverage. |
-| Audio | Procedural fresh cute BGM (`bgm_cute_loop.wav`) + full SFX suite (pick box, drop box, drag rumble loop, button press, dock, sand pour loop, box pop, praise, level complete) in `AudioManager` with volume and mute persistence in `PlayerPrefs`. |
-| UI & DOTween | **25% scale increase** across PauseModal, SettingsModal, MainMenu, and LevelSelectPanel for portrait mobile devices (1080×2400). Zero abrupt `SetActive` toggles; smooth DOTween transitions across cards, buttons, titles, and modals. Header text and gameplay hint overlap bugs resolved. |
+| Tests | **69/69 EditMode tests pass** (`SandGameplay.Tests.EditMode`, ~1.8 s), including 5 new automated level integrity assertions. |
+| Levels | **50 handcrafted levels** in `Resources/Levels/`. Verified with 0 wall-blocker overlaps, 0 container overlaps, 0 phantom containers, and 100% color-to-container coverage. |
+| Level Bug Fixes | **Bug 1 (Level 50 Blocker Overlap)** resolved: pink box free of blockers at (0,0). **Bug 2 (Level 35 Phantom White Box)** resolved: phantom box removed, texture stray pixel repaired, balanced layout at x=1, x=4. Levels 15, 22, 30 also repaired. |
+| Automated Guardrail | `LevelIntegrityTests.cs` runs 5 comprehensive checks on every level to permanently prevent future phantom boxes or blocker collisions. |
+| Audio & UI | Looping BGM (`bgm_cute_loop.wav`), full SFX suite, 25% scale increase for portrait mobile devices (1080×2400), DOTween animations everywhere, zero abrupt `SetActive`. |
 | Code Standards | 100% strictly compliant with `AGENTS.md`: 0 `var` keywords, 0 `new()` shorthand expressions, explicit types, K&R braces, full method bodies. |
 | Git | **Committed and pushed to GitHub `origin/main`**. |
 
-## What was done in session 4
+## What was done in session 5
 
-1. **Interactive SFX Suite & Fresh Cute BGM (D-035):**
-   - Synthesized WAV audio assets via procedural audio synthesis:
-     - `sfx_pick_box.wav`: cheerful upward pitch pop on container grab.
-     - `sfx_drop_box.wav`: soft, satisfying wooden placement thud on container release.
-     - `sfx_drag_loop.wav`: gentle rolling friction rumble looping during container dragging.
-     - `sfx_button_press.wav`: crisp, juicy click for all UI buttons.
-     - `bgm_cute_loop.wav`: fresh, cheerful G-major cozy melody with glockenspiel, ukulele, upright bass, and shakers.
-   - Upgraded `AudioManager.cs` with `pickBoxClip`, `dropBoxClip`, `dragLoopClip`, `buttonPressClip`, dedicated loop audio sources, and methods `PlayPickBox()`, `PlayDropBox()`, `SetDragging(bool)`, and `PlayButtonClick()`.
-   - Wired `ContainerDragController.cs` to trigger pick sound on grab, drag sound while moving, and drop thud on release.
+1. **Root Cause Analysis & Fix for Level 35 Phantom White Box (D-037):**
+   - Investigated user screenshot showing a White box on Level 35 ("Sakura Blossom") with only Green and Pink sand in the tank.
+   - Identified root cause: bottom-left pixel `(0, 0)` in `pattern_lvl35.png` was accidentally colored White (`#EBEFFB`) instead of Green meadow (`#38D161`). The level generator script had detected this 1 pixel and automatically created a White container definition (`colorId: 5`).
+   - Repaired `pattern_lvl35.png` using PIL to set pixel `(0, 0)` to Green meadow.
+   - Removed phantom White container from `Level_35.asset` and centered the 2 legitimate containers (Pink and Green) at `{x: 1, y: 0}` and `{x: 4, y: 0}` on the 7-wide board.
 
-2. **Universal DOTween Animations (D-036):**
-   - Added `"DOTween.Modules"` assembly reference to `SandGameplay.Runtime.asmdef`.
-   - Created `UIButtonJuice.cs`: pointer down/up scale response + click punch scale animation (`transform.DOPunchScale`) and click SFX trigger on all buttons in the scene.
-   - Upgraded `PauseView.cs` with DOTween canvasGroup fade and card scale punch (`Ease.OutBack` entrance, `Ease.InBack` exit).
-   - Upgraded `SettingsView.cs` with DOTween canvasGroup fade and card scale punch (`Ease.OutBack` entrance, `Ease.InBack` exit).
-   - Upgraded `MainMenuView.cs` with DOTween canvasGroup fade, title scale punch, main buttons punch entrance, and `LevelSelectPanel` scale/fade transitions.
-   - Upgraded `LevelCompleteView.cs` with DOTween entrance fade, title pop, and button pulse.
-   - Eliminated abrupt `SetActive` transitions across all UI screens.
+2. **Full-Matrix Audit of All 50 Levels (D-037):**
+   - Scanned all 50 textures and LevelConfig assets.
+   - Discovered and repaired 3 other affected levels:
+     - `Level 15 (Island Lagoon)`: 1 stray Blue pixel at (0, 0) fixed to Yellow; removed phantom Blue container.
+     - `Level 22 (Desert Oasis)`: 1 stray Yellow pixel at (0, 0) fixed to Blue; removed phantom Yellow container.
+     - `Level 30 (Target Ring)`: defined phantom White container with 0 white sand; removed phantom container.
+   - Re-verified Level 50: confirmed pink container starts at `{x: 0, y: 0}`, completely free of wall blockers.
 
-3. **25% UI Scale Increase & Mobile Portrait Layout Hardening (D-036):**
-   - Game canvas configured for local portrait devices (1080×2400 / 1080×1920).
-   - **PauseModal**: card enlarged from `540×620` to `675×775` (+25%), buttons preferred height increased to 94px, font sizes increased to 40pt (title 58pt).
-   - **SettingsModal**: card enlarged from `560×620` to `700×775` (+25%), sliders and toggle buttons enlarged by 25%, labels increased to 36pt.
-   - **MainMenu**: title enlarged to `650×150` (78pt font), buttons enlarged to `450×320` (44pt font).
-   - **LevelSelectPanel**: modal enlarged to `675×920` (+25%), grid cells enlarged from `85×85` to `106×106` (+25%), spacing `14×14`, level button fonts increased to 38pt.
-   - **Header Text Overflow Fix**: `LevelLabel` RectTransform width set to 640px (well within 720px gap between Pause and Restart buttons), enabled TextMeshPro auto-sizing (22–44pt) with ellipsis overflow mode.
-   - **Hint Text Overlap Fix**: `Hint` anchored position moved from `y = 210` (overlapping bottom sand containers) to `y = 75`, comfortably floating in the bottom margin below the board.
+3. **Automated Regression Prevention Suite (`LevelIntegrityTests.cs`):**
+   - Implemented 5 automated EditMode unit tests in `Assets/_Project/Tests/EditMode/LevelIntegrityTests.cs`:
+     1. `AllLevels_EachContainerHasMatchingSandInTank`: verifies every container has `>= 50` grains in tank.
+     2. `AllLevels_EachSandColorHasAcceptingContainer`: verifies every tank color has an accepting container.
+     3. `AllLevels_NoContainerOverlapsWallBlocker`: verifies no container spawns on a wall obstacle.
+     4. `AllLevels_NoContainerOverlapsAnotherContainer`: verifies no containers overlap each other.
+     5. `AllLevels_AllContainersWithinBoardBounds`: verifies all containers fit inside board boundaries.
+   - Total test count expanded from 64 to 69 tests. All 69 tests pass green.
 
-4. **Strict `AGENTS.md` Codebase Audit:**
-   - Scanned and eliminated all `var` occurrences in `ContainerPiece.cs`, `LevelController.cs`, `SandFlowSimulation.cs`, `ContainerDragController.cs`.
-   - Verified 0 occurrences of `new()` shorthand in the entire project.
-   - All classes strictly follow explicit typing, K&R braces, and full method bodies.
-
-5. **Verification & Testing:**
-   - 64/64 EditMode tests pass.
-   - Unity Editor PlayMode verification completed with zero console errors or warnings.
-   - Audio playback, UI transitions, level select, pause freeze, and settings tested in Play Mode.
+4. **Play Mode Integration Verification:**
+   - Loaded Level 35 in Unity Play Mode: confirmed exactly 2 containers (Pink at (1,0), Green at (4,0)), 0 white sand grains, 0 white containers, clean board presentation.
 
 ## Files created or changed
 
 | Area | Files |
 |---|---|
-| Audio | `Assets/_Project/Audio/bgm_cute_loop.wav`, `sfx_pick_box.wav`, `sfx_drop_box.wav`, `sfx_drag_loop.wav`, `sfx_button_press.wav`, `Assets/_Project/Scripts/Audio/AudioManager.cs`, `generate_audio_suite.py` |
-| UI & DOTween | `Assets/_Project/Scripts/UI/UIButtonJuice.cs`, `LevelCompleteView.cs`, `MainMenuView.cs`, `PauseView.cs`, `SettingsView.cs`, `HudView.cs` |
-| Core & Simulation | `Assets/_Project/Scripts/Interaction/ContainerDragController.cs`, `Assets/_Project/Scripts/Container/ContainerPiece.cs`, `Assets/_Project/Scripts/Core/LevelController.cs`, `Assets/_Project/Scripts/Simulation/SandFlowSimulation.cs` |
-| Assemblies | `Assets/_Project/Scripts/SandGameplay.Runtime.asmdef` (added `DOTween.Modules`) |
-| Scene | `Assets/_Project/Scenes/Game.unity` (configured 25% UI scale, HUD positioning, audio clips, and button juice) |
+| Tests | `Assets/_Project/Tests/EditMode/LevelIntegrityTests.cs` (5 automated integrity tests) |
+| Levels | `Assets/_Project/Resources/Levels/Level_15.asset`, `Level_22.asset`, `Level_30.asset`, `Level_35.asset` |
+| Patterns | `Assets/_Project/Art/Patterns/pattern_lvl15.png`, `pattern_lvl22.png`, `pattern_lvl35.png` |
 | Documentation | `docs/tasks.md`, `docs/decisions.md`, `docs/ai_handoff.md` |
 
 ## Next recommended tasks
@@ -95,7 +82,7 @@
 - **Unity MCP (port 6400):**
   - Use `execute_code` with `roslyn` compiler for in-Editor inspection or test automation.
   - Use `refresh_unity` with `compile: request` after script modifications.
-  - Use `run_tests` mode `EditMode` to verify test suite.
+  - Use `run_tests` mode `EditMode` to verify test suite (69 tests).
 - **Scene structure:**
   - `Bootstrap`: contains `SandSimulationRunner` and `LevelController`.
   - `UI`: contains `Canvas`, `SafeArea`, `MainMenu`, `PauseModal`, `SettingsModal`.

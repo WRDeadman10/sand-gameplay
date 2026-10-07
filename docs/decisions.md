@@ -43,6 +43,7 @@
 | [D-034](#d-034) | In-game pause freeze architecture and universal settings modal | ✅ Accepted |
 | [D-035](#d-035) | Complete Audio Suite: Box Pick, Drop, Drag Loop, Button Press, and Cozy Melody | ✅ Accepted |
 | [D-036](#d-036) | DOTween UI Modernization, 25% Portrait Scale Increase, and Layout Collision Fixes | ✅ Accepted |
+| [D-037](#d-037) | Level Integrity Hardening: Blocker Overlap (L50) & Phantom Box (L35/15/22/30) Bug Fixes & Automated Regression Prevention | ✅ Accepted |
 
 ---
 
@@ -438,4 +439,25 @@
     - LevelLabel: width constrained to 640px (well within 720px gap), with TextMeshPro auto-sizing (22–44 pt) and ellipsis overflow.
     - Hint: positioned at bottom margin (`y = 75`), completely below sand containers.
 - **Consequences:** Clean, professional portrait UI layout with rich tactile juice and smooth transitions.
+
+<a id="d-037"></a>
+## D-037 — Level Integrity Hardening: Blocker Overlap (L50) & Phantom Box (L35/15/22/30) Bug Fixes & Automated Regression Prevention
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:**
+  - **Bug 1 (Level 50 Blocker Overlap):** In Level 50, a 2×2 container was initialized at `{x: 2, y: 0}`, which directly overlapped a wall blocker obstacle at `{x: 2, y: 0}`. Because `BoardGrid.IsAreaFree` rejects movement through or onto walls, the box became permanently immobilized and immovable upon level load.
+  - **Bug 2 (Level 35 Phantom White Box):** In Level 35 ("Sakura Blossom"), the tank visual design is a pink sakura flower against a green meadow. However, in gameplay, a useless White box appeared on the board with only 16 grains of white sand in the tank. Root cause analysis revealed that during pixel-art pattern texture synthesis, bottom-left pixel `(0, 0)` in `pattern_lvl35.png` was set to White (`#EBEFFB`) instead of Green meadow (`#38D161`). The level configuration parser detected the 1 white pixel and automatically generated a White container definition (`colorId: 5`).
+  - **Audit Findings:** Running a systematic full-matrix audit across all 50 levels revealed similar 1-pixel stray bugs in `pattern_lvl15.png` (1 stray Blue pixel generating a phantom Blue container) and `pattern_lvl22.png` (1 stray Yellow pixel generating a phantom Yellow container), as well as `Level_30.asset` defining a phantom White container with 0 white sand in its texture.
+- **Decision:**
+  - **Texture Bug Fixes:** Repainted the stray bottom-left pixels in `pattern_lvl15.png` (Yellow), `pattern_lvl22.png` (Blue), and `pattern_lvl35.png` (Green) using PIL script.
+  - **Level Asset Updates:** Removed phantom container definitions from `Level_15.asset`, `Level_22.asset`, `Level_30.asset`, and `Level_35.asset`. Re-balanced and centered the remaining legitimate containers across the bottom row.
+  - **Level 50 Fix:** Relocated the pink container in `Level_50.asset` to `{x: 0, y: 0}`, free of all wall blockers.
+  - **Regression Prevention via Automated Unit Tests:** Created `Assets/_Project/Tests/EditMode/LevelIntegrityTests.cs` with 5 automated test methods that run on every build and commit:
+    1. `AllLevels_EachContainerHasMatchingSandInTank`: asserts every container has `>= 50` grains of its color in the tank (rejects phantom containers from stray pixels).
+    2. `AllLevels_EachSandColorHasAcceptingContainer`: asserts every sand color in the tank has an accepting container (rejects unsolvable sand).
+    3. `AllLevels_NoContainerOverlapsWallBlocker`: asserts no container footprint intersects any wall blocker (rejects immobilized boxes like Bug 1).
+    4. `AllLevels_NoContainerOverlapsAnotherContainer`: asserts no container overlaps another container.
+    5. `AllLevels_AllContainersWithinBoardBounds`: asserts all containers start within valid board coordinates.
+- **Consequences:** All 50 levels pass all 5 integrity assertions with 0 errors. Future level additions are automatically guarded against phantom containers and blocker collisions.
+
 

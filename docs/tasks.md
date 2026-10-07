@@ -19,6 +19,7 @@
 | M8 Deliverables | 6 | 1.5 | ◐ README written; APK, video, zip pending |
 | M9 50 Levels, UI & Audio | 8 | 8 | ☑ 50 levels, Main Menu, Level Select, Pause, Settings, BGM |
 | M10 UI Modernization, DOTween & SFX Suite | 6 | 6 | ☑ SFX suite, DOTween everywhere, 25% scale, portrait layout fixes |
+| M11 Level Integrity Hardening & Regression Tests | 5 | 5 | ☑ Blocker (L50) & phantom box (L35/15/22/30) fixes + 5 automated integrity tests |
 
 ## Planning
 
@@ -165,4 +166,15 @@
 | T10.4 | 25% Scale increase for portrait devices | PauseModal card (675x775), SettingsModal card (700x775), MainMenu (650x150, 450x320), LevelSelectPanel (675x920, cells 106x106) | ☑ |
 | T10.5 | Universal DOTween animations | `UIButtonJuice` punch/scale, `PauseView` fade/scale, `SettingsView` fade/scale, `MainMenuView` punch, `LevelCompleteView` fade/scale | ☑ |
 | T10.6 | Fresh cute BGM | Sunny G-major cozy melody (`bgm_cute_loop.wav`) with glockenspiel, ukulele, upright bass, and shakers | ☑ |
+
+## M11 — Level Integrity Hardening & Regression Tests
+
+| ID | Task | Result | Status |
+|---|---|---|---|
+| T11.1 | Stray pixel audit & texture repair | Fixed stray (0,0) pixels in `pattern_lvl15.png`, `pattern_lvl22.png`, `pattern_lvl35.png` | ☑ |
+| T11.2 | Level 35 phantom white box removal | Removed White container from `Level_35.asset`; centered Pink & Green containers at x=1, x=4 | ☑ |
+| T11.3 | Levels 15, 22, 30 phantom box removal | Removed phantom containers from `Level_15.asset`, `Level_22.asset`, `Level_30.asset`; balanced layouts | ☑ |
+| T11.4 | Level 50 blocker collision resolution | Verified pink container relocated to {x:0, y:0} clear of all wall blockers | ☑ |
+| T11.5 | Automated level integrity test suite | Created `LevelIntegrityTests.cs` (5 tests asserting matching sand >= 50, all colors accepted, 0 blocker overlaps, 0 box overlaps, bounds validity); 69/69 tests green | ☑ |
+
 

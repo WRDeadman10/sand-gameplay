@@ -31,13 +31,10 @@ MonoBehaviour:
   containers:
   - colorId: 3
     footprint: {x: 2, y: 2}
-    startCell: {x: 0, y: 0}
-  - colorId: 2
-    footprint: {x: 2, y: 2}
-    startCell: {x: 2, y: 0}
+    startCell: {x: 1, y: 0}
   - colorId: 0
     footprint: {x: 2, y: 2}
-    startCell: {x: 5, y: 0}
+    startCell: {x: 4, y: 0}
   colorRule: 0
   completionThreshold: 1
   assistThreshold: 0.8
