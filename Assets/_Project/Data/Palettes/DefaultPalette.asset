@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3290e9663498d234abc3300fd23d5b1c, type: 3}
+  m_Name: DefaultPalette
+  m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Sand.SandPalette
+  colors:
+  - name: Yellow
+    shadow: {r: 0.86, g: 0.45, b: 0.06, a: 1}
+    baseColor: {r: 1, g: 0.78, b: 0.18, a: 1}
+    highlight: {r: 1, g: 0.96, b: 0.66, a: 1}
+    body: {r: 1, g: 0.76, b: 0.14, a: 1}
+  - name: Red
+    shadow: {r: 0.6, g: 0.07, b: 0.12, a: 1}
+    baseColor: {r: 0.93, g: 0.22, b: 0.25, a: 1}
+    highlight: {r: 1, g: 0.58, b: 0.55, a: 1}
+    body: {r: 0.95, g: 0.27, b: 0.27, a: 1}
+  - name: Blue
+    shadow: {r: 0.09, g: 0.24, b: 0.7, a: 1}
+    baseColor: {r: 0.22, g: 0.5, b: 0.98, a: 1}
+    highlight: {r: 0.64, g: 0.84, b: 1, a: 1}
+    body: {r: 0.24, g: 0.52, b: 0.98, a: 1}
+  - name: Green
+    shadow: {r: 0.07, g: 0.48, b: 0.22, a: 1}
+    baseColor: {r: 0.22, g: 0.82, b: 0.38, a: 1}
+    highlight: {r: 0.64, g: 1, b: 0.66, a: 1}
+    body: {r: 0.25, g: 0.8, b: 0.36, a: 1}
+  - name: Pink
+    shadow: {r: 0.68, g: 0.17, b: 0.54, a: 1}
+    baseColor: {r: 0.98, g: 0.42, b: 0.78, a: 1}
+    highlight: {r: 1, g: 0.76, b: 0.93, a: 1}
+    body: {r: 0.96, g: 0.42, b: 0.76, a: 1}
+  - name: White
+    shadow: {r: 0.68, g: 0.72, b: 0.84, a: 1}
+    baseColor: {r: 0.92, g: 0.94, b: 0.98, a: 1}
+    highlight: {r: 1, g: 1, b: 1, a: 1}
+    body: {r: 0.92, g: 0.94, b: 0.98, a: 1}
+  sparkleBrightness: 1.25
+  sparkleChance: 0.015
+  toneJitter: 2
