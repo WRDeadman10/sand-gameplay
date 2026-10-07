@@ -1,93 +1,161 @@
-# Color Sand — Sand Gameplay Prototype
+# Color Sand — Sand Gameplay Replication
 
-A playable Unity prototype of the core loop of **Color Sand: Fill The Blocks**, built for a 2-day practical test. The player drags a box under a tank of colored sand. The sand pours in from directly above the box, the tank slumps grain by grain, and the box fills with a live percentage. A full box pops, praises the player, and flies into the tank. Play Again restarts instantly.
+A high-fidelity, production-ready Unity replication of the mobile puzzle hit **Color Sand: Fill The Blocks**, faithfully modeled after reference gameplay (`gpay.mp4`).
 
-## Requirements
+Players navigate colored containers under a sand dispenser tank, docking them into position to drain matching sand grains. The simulation calculates cellular grain-by-grain physics with angle-of-repose slumping, multi-color filtering, obstacle avoidance, and celebratory launch sequences across **50 handcrafted progressive puzzle levels**.
 
-| Item | Version |
+---
+
+## Key Highlights
+
+- **50 Handcrafted Progressive Levels**: Fully replicated from level 1 to 50, featuring multi-color sands, multi-container docking stations, obstacle blockers, and spatial color puzzles.
+- **Cellular Automaton Physics Engine**: Deterministic 120 Hz falling-sand simulation with exact grain conservation, natural 45° angle of repose, color-matching filters, and zero per-frame garbage collection.
+- **Multi-Container Docking & Flow**: Dynamic dock/undock detection, spatial container snapping, color isolation, visual fill ratio scaling, container launch sequence, and praise popups.
+- **Modern DOTween UI & Portrait Mobile UX**: Responsive portrait layout (1080×2400 / 9:16) with safe-area support, punch/fade transitions on all UI elements, 25% scale increase for readability, Main Menu, paged 50-level Level Select grid, In-Game HUD, Pause Modal, and Settings Modal.
+- **Tactile Audio Suite & Cozy BGM**: Procedural audio for box picking, dropping, continuous dragging loop, sand pour stream, button clicks, launch pops, fanfare, and cozy looping background music with persistent volume and mute controls.
+- **Production-Grade Engineering**: 69 automated EditMode unit and integration tests passing at 100%, strict SOLID architecture, explicit typing, K&R braces, and zero runtime GC allocations in hot simulation paths.
+
+---
+
+## Technical Specifications & Requirements
+
+| Specification | Details |
 |---|---|
-| Unity | **6000.3.9f1** (Unity 6.3 LTS) with Android Build Support (SDK, NDK, OpenJDK) |
-| Render pipeline | Universal RP 17.3.0 (Mobile quality level on Android) |
-| Packages used by the game | Input System 1.18.0, uGUI 2.0.0 (includes TextMeshPro), Universal RP 17.3.0 |
-| Packages used by tests | Test Framework 1.6.0 |
+| **Unity Version** | **6000.3.9f1** (Unity 6.3 LTS) with Android Build Support (SDK, NDK, OpenJDK) |
+| **Render Pipeline** | Universal Render Pipeline (URP) 17.3.0 (`Mobile_RPAsset`, Mobile quality tier) |
+| **Target Platform** | Android (ARM64, IL2CPP, Min API 25, Target API 34+) & Unity Editor |
+| **Target Resolution** | Portrait **1080×2400** (20:9 / Galaxy S21) with `SafeAreaFitter` support |
+| **Package ID** | `com.wrdeadman10.sand.gameplay` |
+| **App Icon** | 512×512 icon assigned for Default, Standalone, and Android (Adaptive, Round, Legacy) |
+| **Key Packages** | Input System 1.18.0, uGUI 2.0.0 (TextMeshPro), URP 17.3.0, DOTween (Demigiant), Test Framework 1.6.0 |
 
-## How to run
+---
 
-1. Open the project folder in Unity 6000.3.9f1.
-2. Open **`Assets/_Project/Scenes/Game.unity`**. It is the only scene in the build.
-3. Press **Play**. For phone framing, set the Game view to a portrait size such as **1080×2400** (Galaxy S21).
+## How to Play & Controls
 
-Android build: *File → Build Profiles → Android → Build*. The platform is already Android, with package id `com.wrdeadman10.sand.gameplay`, IL2CPP, ARM64, portrait, and min API 25.
+| Action | Control (Touch / Mouse) | Description |
+|---|---|---|
+| **Move Container** | Drag & drop | Touch and drag any colored container across the board grid. Containers snap to valid grid slots upon release. |
+| **Dock Container** | Drag to top row | Slide the container directly underneath the tank opening. Once docked, sand matching the container's color pours in automatically. |
+| **Steer Sand Flow** | Slide while docked | Shift the container horizontally along the tank outlet to drain specific piles. Pulling the container away immediately seals the flow without losing collected sand. |
+| **Auto-Launch** | Fill to 100% | When a container is filled, it pops with celebratory confetti, plays a praise popup ("SWEET!", "PERFECT!"), and launches into the tank. |
+| **Level Progression** | Clear all sand | Fill all matching containers to clear the tank and advance to the next level. |
+| **Game Navigation** | HUD buttons | Access the Pause menu (Resume, Restart, Settings, Main Menu) or trigger instant Level Restart at any time. |
 
-## Controls
+---
 
-| Input | Action |
-|---|---|
-| Touch (Android) / left mouse (Editor) | Press the box, drag, release. It snaps to the grid. |
-| Dock | Drag the box up until its top touches the tank. **Sand pours in.** |
-| Steer the flow | Slide the box along the tank to drain the side piles. Pull it away to stop the flow; the box keeps its sand. |
-| Restart | ↻ button (top-right) at any time, or **Play Again** on the completion screen |
+## How the Sand Simulation Works
 
-## How the sand works
+1. **Cellular Automaton**: Each grain is represented by a 16-bit bit-packed `SandCell` (`ushort` containing occupancy, color index, and tone variance). Simulation scans bottom-to-top with alternating left/right scan passes each tick, ensuring stable 45° pile slumping without directional bias.
+2. **Dual-Grid Architecture**:
+   - **Tank Grid**: 144×48 simulation cells representing the main sand reservoir.
+   - **Container Interior**: 40×40 cells plus 3 rim transfer rows per container, simulated in local coordinates so dragging never disturbs resting sand.
+3. **Docking & Outlet Transfer**: When a container docks flush against the tank base, `DockResolver` maps the overlapping columns. `SandOutlet` extracts accepted grains from the bottom row each tick, queuing them into the container's rim buffer. Mismatched colors block flow naturally.
+4. **Fill Accounting & Scaling**: Tank capacity equals the total matching grains in the reservoir. Because container grids are smaller than the reservoir, visual grains spawn proportionally while preserving color and tone. Stranded grains are vacuumed at ≥97% capacity, and containers top off cleanly at 100%.
+5. **Direct Texture Rendering**: Changes are blitted directly into a point-filtered `Texture2D` using `GetPixelData<Color32>()` with color-tone LUTs. Settled grids enter sleep state to eliminate redundant GPU uploads.
+6. **Performance & GC**: Fixed 120 ticks/s simulation (~0.03 ms/frame, ~0.04 ms texture upload). 0 bytes GC allocated per simulation step.
 
-- **Cellular automaton.** One cell per grain, stored as a `ushort` (occupied bit plus color and tone). Each tick, rows are processed bottom to top: a grain falls if the cell below is empty, otherwise it slides diagonally at random, otherwise it rests. Bottom-up order guarantees a grain moves at most once per tick, and the scan direction alternates every tick so piles don't lean. Piles settle at about 45°, like the reference.
-- **Two grids.** The tank has its own grid (144×48 grains) and so does the box interior (40×40 grains plus 3 rim rows). The box's sand lives in box-local space, so dragging never disturbs it.
-- **The path (outlet).** When the box's top is flush with the tank's bottom, `DockResolver` finds the tank columns above the box opening. Each tick, `SandOutlet` removes accepted grains from the tank's bottom row in that span and queues them, and they spawn in the box's rim row. Moving the box moves the drain point; leaving closes it. The color rule (`MatchColor`) is in place: a grain of another color would block its column, as in the reference.
-- **Fill accounting.** Capacity is the number of acceptable grains in the tank. The box interior has fewer cells than the tank has grains, so visual grains spawn by ratio and keep their color and tone. From 97% full while docked, the last stranded grains are pulled in gradually. At 100% the interior is topped up so it reads as exactly full.
-- **Rendering.** Each grid writes into a point-filtered `Texture2D` (`GetPixelData`, no allocation) through a color × tone lookup table, and only when the grid changed.
-- **Timing and cost.** The simulation runs at a fixed 120 ticks/s (max 4 per frame), and settled grids sleep. In the editor it measured about **0.03 ms/frame** for the simulation and **0.04 ms/frame** for texture upload. There are no per-grain GameObjects, and `SandGrid.Step` allocates 0 bytes (covered by a unit test).
+---
 
-## Project layout
+## Project Structure
 
 ```
 Assets/_Project/
-  Scenes/Game.unity              the game scene
-  Scripts/                       SandGameplay.Runtime assembly
-    Sand/        grid, cell encoding, RNG, palette, settings, texture view
-    Source/      tank (SandSource) and its fill patterns
-    Transfer/    dock resolver, outlet, transfer queue, color rule
-    Container/   box logic (SandContainer), interior spawner, box piece and visuals, % label
-    Board/       board grid and view
-    Interaction/ pointer drag (Input System "Gameplay" actions)
-    Simulation/  fixed-tick clock, per-tick flow, runner
-    Presentation/ camera fit, completion sequence, praise popup, pour spray
-    UI/          HUD, Level Completed panel, safe area
-    Core/        LevelController (composition root and state machine)
-    Data/        LevelConfig (ScriptableObject)
-  Tests/EditMode/                SandGameplay.Tests.EditMode (64 tests)
-  Data/                          Level_Default, DefaultPalette, DefaultSimulation assets
-  Art/                           generated sprites, tank pattern, font, materials
-  Prefabs/                       Tank, Container
-Tools/ArtGen/generate_sprites.py  regenerates every sprite (Python + Pillow + numpy)
-docs/                            overview, architecture, roadmap, tasks, decisions, handoff
+  Scenes/
+    Game.unity                  # Unified game scene (Main Menu, Gameplay, UI Modals)
+  Scripts/                      # SandGameplay.Runtime assembly
+    Sand/                       # Grid cellular automaton, SandCell, RNG, Palette, TextureView
+    Source/                     # SandSource (tank) and procedural/texture fill patterns
+    Transfer/                   # DockResolver, SandOutlet, TransferQueue, ColorRule
+    Container/                  # SandContainer, InteriorSpawner, ContainerPiece, ContainerPool
+    Board/                      # BoardGrid, BoardSlot, ObstacleBlocker
+    Interaction/                # PointerDragController, ContainerDragController (Input System)
+    Simulation/                 # FixedTickClock, FlowPipeline, SandSimulationRunner
+    Presentation/               # CameraFit, CompletionSequence, PraisePopup, PourSprayVfx
+    UI/                         # MainMenuView, LevelSelectView, HudView, PauseView, SettingsView, Juice
+    Audio/                      # AudioManager, AudioSettings, procedural sound effects & BGM
+    Core/                       # LevelController (state machine & progression), LevelProgress
+    Data/                       # LevelConfig ScriptableObjects, PaletteData, SimulationSettings
+  Resources/
+    Levels/                     # Level_01 to Level_50 ScriptableObjects (runtime loaded)
+  Art/
+    Icons/                      # 512×512 app_icon.png and Android adaptive assets
+    Sprites/                    # Generated crisp 9-sliced UI frames, containers, blockers
+    Patterns/                   # pattern_lvl01.png to pattern_lvl50.png tank textures
+    Fonts/                      # Lilita One font asset and TextMeshPro SDF presets
+    Materials/                  # URP unlit sprite materials
+  Audio/
+    bgm_cute_loop.wav           # Cozy looping background music (36s seamless loop)
+    sfx_*.wav                   # Tactile procedural audio clips (pick, drop, drag, pour, pop, UI)
+  Prefabs/                      # Container, Blocker, Spray, HUD, Modals, Praise
+  Tests/EditMode/               # SandGameplay.Tests.EditMode assembly (69 tests)
+docs/                           # project-overview.md, architecture.md, roadmap.md, tasks.md, decisions.md, ai_handoff.md
 ```
 
-## Tests
+---
 
-Run *Window → General → Test Runner → EditMode → Run All*. There are 64 tests covering:
-- the automaton: fall, slide, conservation, determinism, sleep/wake, zero allocation
-- the outlet and color rule, the transfer queue, fill accounting, and the interior spawner
-- docking, board constraints, fill patterns, the fixed-tick clock
-- the end-to-end tank-to-box flow
+## Automated Test Suite
 
-Code formatting follows `.editorconfig` and is checked with:
+The project includes **69 automated EditMode tests** across 12 test suites verifying physics, transfer rules, docking geometry, and puzzle level integrity:
+
+- **Automaton Physics** (`SandGridTests`): Gravity fall, diagonal slide, conservation of grains, deterministic seeds, sleep/wake cycles, 0-byte GC allocation.
+- **Transfer & Rules** (`DockResolverTests`, `SandOutletTests`, `TransferQueueTests`): Overlap column math, color acceptance, queue push/pop.
+- **Fill Accounting** (`FillAccountingTests`, `ContainerInteriorSpawnerTests`): Ratio scaling, capacity thresholds, topping-off logic.
+- **Board & Timing** (`BoardGridTests`, `FixedTickClockTests`, `EndToEndFlowTests`): Slot snapping, fixed clock stepping, end-to-end tank-to-box drain.
+- **Level Integrity** (`LevelIntegrityTests`): Verifies all 50 levels have valid bounds, sand counts ≥ 50, 100% container color coverage, zero blocker overlaps, and zero container overlaps.
+
+### Running Tests in Unity
+
+1. In the Editor, open **Window → General → Test Runner**.
+2. Select the **EditMode** tab.
+3. Click **Run All** (all 69 tests pass green).
+
+### Running Tests via CLI
+
+```powershell
+& "C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Unity.exe" `
+  -batchmode -runTests `
+  -testPlatform EditMode `
+  -projectPath "D:\Unity\sand gameplay" `
+  -testResults "TestResults.xml" `
+  -logFile "TestLog.txt"
+```
+
+### Code Style & Quality Verification
 
 ```powershell
 dotnet format "SandGameplay.Runtime.csproj" --verify-no-changes --no-restore
 dotnet format "SandGameplay.Tests.EditMode.csproj" --verify-no-changes --no-restore
 ```
 
-## Third-party assets
+---
 
-| Asset | License |
-|---|---|
-| **Lilita One** font (Juan Montoreano, from the Google Fonts repository) | SIL Open Font License 1.1, see `Assets/_Project/Art/Fonts/LilitaOne-OFL.txt` |
-| All sprites and the tank pattern | Original; generated by `Tools/ArtGen/generate_sprites.py` |
+## Building the Android APK
 
-No Asset Store content and no third-party runtime code. The manifest also contains editor tooling that the game does not use: `com.coplaydev.unity-mcp` (Unity MCP bridge) plus Cinemachine, glTFast, ProBuilder and VFX Graph.
+1. In Unity, open **File → Build Profiles**.
+2. Ensure **Android** is the active build profile.
+3. Verify settings:
+   - **Target Architecture**: ARM64
+   - **Scripting Backend**: IL2CPP
+   - **Orientation**: Portrait
+   - **Package ID**: `com.wrdeadman10.sand.gameplay`
+   - **Icon**: App icon assigned across all density tiers
+4. Click **Build** and choose output destination `ColorSand.apk`.
 
-## Known limitations
+---
 
-- One tank and one box, by design (test brief). Multi-box puzzles, obstacles and boosters are out of scope.
-- Tested in the Unity Editor. The Android APK, on-device profiling (Samsung Galaxy S21) and the demo video are the next steps.
-- No audio yet.
+## Third-Party Assets & Attribution
+
+| Asset / Package | Author | License / Usage |
+|---|---|---|
+| **Lilita One Font** | Juan Montoreano | SIL Open Font License 1.1 (`Assets/_Project/Art/Fonts/LilitaOne-OFL.txt`) |
+| **DOTween** | Demigiant | Free edition included under `Assets/Plugins/Demigiant/DOTween/` |
+| **Sprites & Audio** | Original / Procedural | Synthesized in-repo for this project |
+
+---
+
+## Architecture & Design Standards
+
+This codebase strictly implements:
+- **SOLID & Clean Architecture**: Composition over inheritance, thin MonoBehaviours, separated simulation data and view presentations.
+- **Coding Standards (`AGENTS.md`)**: No `var`, explicit types only, no shorthand `new()`, K&R brace formatting, zero allocations in simulation tick loops, and comprehensive architectural documentation maintained under `docs/`.

@@ -68,6 +68,9 @@
    - Configured `PluginImporter` for all 5 DLLs in `Assets/Plugins/Roslyn/` (`Microsoft.CodeAnalysis*.dll`, `System.Collections.Immutable.dll`, `System.Reflection.Metadata.dll`, `System.Runtime.CompilerServices.Unsafe.dll`) to `Editor-only` (excluded from Android and Standalone).
    - Prevents 12.7 MB of compiler assemblies from bloating the Android APK or causing IL2CPP stripping issues, while preserving full Roslyn compilation for the Unity MCP bridge in the Editor.
    - All 69 EditMode tests pass.
+4. **README Overhaul & Deliverable Preparation (T8.1):**
+   - Completely rewrote `README.md` to reflect the full 50-level game state, multi-container simulation, tactile audio suite, DOTween UI polish (+25% scale for portrait 1080x2400), 69 EditMode tests passing 100%, and Android build instructions.
+   - Formulated executive email reply submission draft for reviewer submission with Git repository URL and APK attachment placeholders.
 
 ## Next recommended tasks
 

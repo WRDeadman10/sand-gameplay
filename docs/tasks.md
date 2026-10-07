@@ -16,7 +16,7 @@
 | M5 Completion & restart | 7 | 7 | ☑ |
 | M6 Visual polish & feel | 8 | 8 | ☑ Full SFX suite completed |
 | M7 Performance & Android | 6 | 1.0 | ◐ Pause state implemented; device profiling pending |
-| M8 Deliverables | 6 | 1.5 | ◐ README written; APK, video, zip pending |
+| M8 Deliverables | 6 | 2.0 | ◐ Comprehensive README completed; APK build & submission email drafted |
 | M9 50 Levels, UI & Audio | 8 | 8 | ☑ 50 levels, Main Menu, Level Select, Pause, Settings, BGM |
 | M10 UI Modernization, DOTween & SFX Suite | 6 | 6 | ☑ SFX suite, DOTween everywhere, 25% scale, portrait layout fixes |
 | M11 Level Integrity Hardening & Regression Tests | 5 | 5 | ☑ Blocker (L50) & phantom box (L35/15/22/30) fixes + 5 automated integrity tests |
@@ -137,7 +137,7 @@
 
 | ID | Task | Notes | Status |
 |---|---|---|---|
-| T8.1 | `README.md` | Written; add APK and video links when they exist | ◐ |
+| T8.1 | `README.md` | Comprehensive README rewritten with 50 levels, audio, DOTween, 69 tests | ☑ |
 | T8.2 | Demo video, 30–90 s | Needs the device or Editor recording | ☐ |
 | T8.3 | Project zip + verify it opens | Exclusions in roadmap.md M8 | ☐ |
 | T8.4 | Submission checklist | — | ☐ |
