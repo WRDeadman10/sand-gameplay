@@ -95,20 +95,36 @@ namespace SandGameplay.Core {
         }
 
         private void Awake() {
-            if (!HasValidSetup()) {
-                enabled = false;
-                return;
-            }
-
             Application.targetFrameRate = targetFrameRate;
             Application.runInBackground = true;
 
-            // Build full levels list if not set in inspector
-            if (allLevels == null || allLevels.Length == 0) {
+            // Build full levels list if not set or contains missing references
+            bool needsLoad = allLevels == null || allLevels.Length == 0;
+            if (!needsLoad) {
+                for (int i = 0; i < allLevels.Length; i++) {
+                    if (allLevels[i] == null) {
+                        needsLoad = true;
+                        break;
+                    }
+                }
+            }
+
+            if (needsLoad) {
                 allLevels = Resources.LoadAll<LevelConfig>("Levels");
                 if (allLevels == null || allLevels.Length == 0) {
-                    allLevels = new[] { defaultLevel };
+                    allLevels = defaultLevel != null ? new[] { defaultLevel } : Array.Empty<LevelConfig>();
+                } else {
+                    Array.Sort(allLevels, (a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
                 }
+            }
+
+            if (defaultLevel == null && allLevels != null && allLevels.Length > 0) {
+                defaultLevel = allLevels[0];
+            }
+
+            if (!HasValidSetup()) {
+                enabled = false;
+                return;
             }
 
             _currentLevelIndex = 0;

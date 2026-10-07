@@ -13,24 +13,29 @@ MonoBehaviour:
   m_Name: Level_08
   m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Data.LevelConfig
   displayName: Level 8 - Sun Horizon
-  boardSize: {x: 6, y: 8}
-  wallCells:
-  - {x: 2, y: 3}
-  - {x: 3, y: 3}
+  boardSize: {x: 6, y: 7}
+  wallCells: []
   tankSize: {x: 6, y: 2}
   tankColumnOffset: 0
   tankPattern:
     mode: 1
     colorId: 0
-    solidFillRatio: 0.75
+    solidFillRatio: 0.8
     solidTone: 7
-    pixelArt: {fileID: 2800000, guid: cc89dc14f5999b14d949d4e0f1a3d592, type: 3}
-    pixelArtMapping: 0
+    pixelArt: {fileID: 2800000, guid: 8fc8fe4228ff0414baf681e68a99db6b, type: 3}
+    pixelArtMapping: 1
   containerFootprint: {x: 2, y: 2}
   containerStartCell: {x: 1, y: 0}
   containerColorId: 0
+  containers:
+  - colorId: 0
+    footprint: {x: 2, y: 2}
+    startCell: {x: 1, y: 0}
+  - colorId: 2
+    footprint: {x: 2, y: 2}
+    startCell: {x: 3, y: 0}
   colorRule: 0
   completionThreshold: 1
-  assistThreshold: 0.97
+  assistThreshold: 0.8
   palette: {fileID: 11400000, guid: 158354045e688754fbcb2f8bf218c7cc, type: 2}
   simulation: {fileID: 11400000, guid: 6a8ab6df93762e647ac8f4e1632b91d4, type: 2}

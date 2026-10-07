@@ -12,27 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb88e9dde43109498a2ff6d2db48e74, type: 3}
   m_Name: Level_11
   m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Data.LevelConfig
-  displayName: Level 11 - Grand Waterfall
-  boardSize: {x: 8, y: 9}
-  wallCells:
-  - {x: 2, y: 3}
-  - {x: 5, y: 3}
-  - {x: 2, y: 5}
-  - {x: 5, y: 5}
-  tankSize: {x: 8, y: 2}
+  displayName: Level 11 - Emerald Valley
+  boardSize: {x: 6, y: 7}
+  wallCells: []
+  tankSize: {x: 6, y: 2}
   tankColumnOffset: 0
   tankPattern:
-    mode: 0
-    colorId: 2
-    solidFillRatio: 0.85
+    mode: 1
+    colorId: 3
+    solidFillRatio: 0.8
     solidTone: 7
-    pixelArt: {fileID: 0}
-    pixelArtMapping: 0
-  containerFootprint: {x: 3, y: 2}
-  containerStartCell: {x: 2, y: 0}
-  containerColorId: 2
+    pixelArt: {fileID: 2800000, guid: 63969026624d1a841ae908c9ae5335d2, type: 3}
+    pixelArtMapping: 1
+  containerFootprint: {x: 2, y: 2}
+  containerStartCell: {x: 0, y: 0}
+  containerColorId: 3
+  containers:
+  - colorId: 3
+    footprint: {x: 2, y: 2}
+    startCell: {x: 0, y: 0}
+  - colorId: 0
+    footprint: {x: 2, y: 2}
+    startCell: {x: 3, y: 0}
   colorRule: 0
   completionThreshold: 1
-  assistThreshold: 0.97
+  assistThreshold: 0.8
   palette: {fileID: 11400000, guid: 158354045e688754fbcb2f8bf218c7cc, type: 2}
   simulation: {fileID: 11400000, guid: 6a8ab6df93762e647ac8f4e1632b91d4, type: 2}

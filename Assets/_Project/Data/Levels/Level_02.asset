@@ -12,23 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb88e9dde43109498a2ff6d2db48e74, type: 3}
   m_Name: Level_02
   m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Data.LevelConfig
-  displayName: Level 2 - Dual Color Drain
+  displayName: Level 2 - Sky & Sea
   boardSize: {x: 6, y: 7}
   wallCells: []
   tankSize: {x: 6, y: 2}
   tankColumnOffset: 0
   tankPattern:
-    mode: 0
+    mode: 1
     colorId: 2
-    solidFillRatio: 0.75
+    solidFillRatio: 0.8
     solidTone: 7
-    pixelArt: {fileID: 0}
-    pixelArtMapping: 0
+    pixelArt: {fileID: 2800000, guid: 3290f6ee000a14c40a60cde73a5a6f52, type: 3}
+    pixelArtMapping: 1
   containerFootprint: {x: 2, y: 2}
-  containerStartCell: {x: 0, y: 0}
+  containerStartCell: {x: 1, y: 0}
   containerColorId: 2
+  containers:
+  - colorId: 2
+    footprint: {x: 2, y: 2}
+    startCell: {x: 1, y: 0}
+  - colorId: 5
+    footprint: {x: 2, y: 2}
+    startCell: {x: 3, y: 0}
   colorRule: 0
   completionThreshold: 1
-  assistThreshold: 0.97
+  assistThreshold: 0.8
   palette: {fileID: 11400000, guid: 158354045e688754fbcb2f8bf218c7cc, type: 2}
   simulation: {fileID: 11400000, guid: 6a8ab6df93762e647ac8f4e1632b91d4, type: 2}

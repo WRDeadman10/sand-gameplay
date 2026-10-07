@@ -12,26 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb88e9dde43109498a2ff6d2db48e74, type: 3}
   m_Name: Level_09
   m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Data.LevelConfig
-  displayName: Level 9 - Zigzag Corridor
-  boardSize: {x: 7, y: 8}
+  displayName: Level 9 - Candy Stripes
+  boardSize: {x: 6, y: 7}
   wallCells:
-  - {x: 1, y: 2}
-  - {x: 3, y: 4}
-  - {x: 5, y: 2}
-  tankSize: {x: 7, y: 2}
+  - {x: 3, y: 3}
+  tankSize: {x: 6, y: 2}
   tankColumnOffset: 0
   tankPattern:
-    mode: 0
+    mode: 1
     colorId: 4
-    solidFillRatio: 0.85
+    solidFillRatio: 0.8
     solidTone: 7
-    pixelArt: {fileID: 0}
-    pixelArtMapping: 0
+    pixelArt: {fileID: 2800000, guid: 6382aaa0d22acdc40b97242b18d7f547, type: 3}
+    pixelArtMapping: 1
   containerFootprint: {x: 2, y: 2}
   containerStartCell: {x: 0, y: 0}
   containerColorId: 4
+  containers:
+  - colorId: 4
+    footprint: {x: 2, y: 2}
+    startCell: {x: 0, y: 0}
+  - colorId: 0
+    footprint: {x: 2, y: 2}
+    startCell: {x: 4, y: 0}
   colorRule: 0
   completionThreshold: 1
-  assistThreshold: 0.97
+  assistThreshold: 0.8
   palette: {fileID: 11400000, guid: 158354045e688754fbcb2f8bf218c7cc, type: 2}
   simulation: {fileID: 11400000, guid: 6a8ab6df93762e647ac8f4e1632b91d4, type: 2}

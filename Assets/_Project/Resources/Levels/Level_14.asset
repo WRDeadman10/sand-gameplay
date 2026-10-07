@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0eb88e9dde43109498a2ff6d2db48e74, type: 3}
+  m_Name: Level_14
+  m_EditorClassIdentifier: SandGameplay.Runtime::SandGameplay.Data.LevelConfig
+  displayName: Level 14 - Primary Trio
+  boardSize: {x: 6, y: 8}
+  wallCells: []
+  tankSize: {x: 6, y: 2}
+  tankColumnOffset: 0
+  tankPattern:
+    mode: 1
+    colorId: 1
+    solidFillRatio: 0.8
+    solidTone: 7
+    pixelArt: {fileID: 2800000, guid: 660a2c56af289264e8c5867ef2161fef, type: 3}
+    pixelArtMapping: 1
+  containerFootprint: {x: 2, y: 2}
+  containerStartCell: {x: 0, y: 0}
+  containerColorId: 1
+  containers:
+  - colorId: 1
+    footprint: {x: 2, y: 2}
+    startCell: {x: 0, y: 0}
+  - colorId: 2
+    footprint: {x: 2, y: 2}
+    startCell: {x: 2, y: 0}
+  - colorId: 0
+    footprint: {x: 2, y: 2}
+    startCell: {x: 4, y: 0}
+  colorRule: 0
+  completionThreshold: 1
+  assistThreshold: 0.8
+  palette: {fileID: 11400000, guid: 158354045e688754fbcb2f8bf218c7cc, type: 2}
+  simulation: {fileID: 11400000, guid: 6a8ab6df93762e647ac8f4e1632b91d4, type: 2}
