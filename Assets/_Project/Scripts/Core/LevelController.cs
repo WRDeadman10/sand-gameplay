@@ -275,6 +275,7 @@ namespace SandGameplay.Core {
 
         private void HandleSequenceFinished() {
             State = LevelState.Completed;
+            LevelProgress.SetLevelCleared(_currentLevelIndex);
             levelCompleteView.Show();
         }
 

@@ -18,6 +18,7 @@ namespace SandGameplay.UI {
         [SerializeField] private CanvasGroup menuCanvasGroup;
 
         [Header("Buttons")]
+        [SerializeField] private GameObject buttonsRoot;
         [SerializeField] private Button playButton;
         [SerializeField] private Button levelSelectButton;
         [SerializeField] private Button closeSelectButton;
@@ -49,6 +50,9 @@ namespace SandGameplay.UI {
                 menuCanvasGroup.interactable = true;
                 menuCanvasGroup.blocksRaycasts = true;
             }
+            if (buttonsRoot != null) {
+                buttonsRoot.SetActive(true);
+            }
             if (levelSelectPanel != null) {
                 levelSelectPanel.SetActive(false);
             }
@@ -66,34 +70,69 @@ namespace SandGameplay.UI {
         }
 
         public void PopulateLevelList(IReadOnlyList<LevelConfig> levels, int currentLevelIndex) {
-            foreach (Button btn in _spawnedButtons) {
-                if (btn != null) {
-                    Destroy(btn.gameObject);
-                }
-            }
-            _spawnedButtons.Clear();
-
             if (levelButtonTemplate == null || levelButtonsContainer == null || levels == null) {
                 return;
             }
 
-            for (int i = 0; i < levels.Count; i++) {
-                int levelIndex = i;
-                LevelConfig cfg = levels[i];
-                Button btn = Instantiate(levelButtonTemplate, levelButtonsContainer);
+            // Remove any unmanaged or null buttons
+            for (int i = levelButtonsContainer.childCount - 1; i >= 0; i--) {
+                Transform child = levelButtonsContainer.GetChild(i);
+                if (child == levelButtonTemplate.transform) {
+                    continue;
+                }
+                Button btnComp = child.GetComponent<Button>();
+                if (btnComp == null || !_spawnedButtons.Contains(btnComp)) {
+                    child.SetParent(null);
+                    Destroy(child.gameObject);
+                }
+            }
+
+            // Pool buttons: only create if we have fewer than levels.Count
+            while (_spawnedButtons.Count < levels.Count) {
+                Button newBtn = Instantiate(levelButtonTemplate, levelButtonsContainer);
+                _spawnedButtons.Add(newBtn);
+            }
+
+            for (int i = 0; i < _spawnedButtons.Count; i++) {
+                Button btn = _spawnedButtons[i];
+                if (i >= levels.Count) {
+                    btn.gameObject.SetActive(false);
+                    continue;
+                }
+
                 btn.gameObject.SetActive(true);
-                
+                int levelIndex = i;
+
+                bool isCleared = Core.LevelProgress.IsLevelCleared(levelIndex);
+                bool isCurrent = (levelIndex == currentLevelIndex);
+
+                // Only show the level number
                 TMP_Text label = btn.GetComponentInChildren<TMP_Text>();
                 if (label != null) {
-                    label.text = (i + 1).ToString();
-                    label.fontSize = 32;
-                    if (i == currentLevelIndex) {
-                        label.color = new Color(1f, 0.9f, 0.2f);
+                    label.text = (levelIndex + 1).ToString();
+                    label.fontSize = 38;
+                    label.color = isCurrent ? new Color(1f, 0.95f, 0.35f) : Color.white;
+                }
+
+                // Checkmark badge for cleared levels
+                Transform badge = btn.transform.Find("Badge");
+                if (badge != null) {
+                    badge.gameObject.SetActive(isCleared);
+                }
+
+                // Tile background styling
+                Image tileImg = btn.GetComponent<Image>();
+                if (tileImg != null) {
+                    if (isCleared) {
+                        tileImg.color = new Color(0.18f, 0.62f, 0.36f, 1f); // Emerald green for cleared
+                    } else if (isCurrent) {
+                        tileImg.color = new Color(0.92f, 0.62f, 0.15f, 1f); // Vibrant gold for current level
                     } else {
-                        label.color = Color.white;
+                        tileImg.color = new Color(0.24f, 0.20f, 0.40f, 1f); // Default dark tile
                     }
                 }
 
+                btn.onClick.RemoveAllListeners();
                 btn.onClick.AddListener(() => {
                     if (Audio.AudioManager.Instance != null) {
                         Audio.AudioManager.Instance.PlayUiClick();
@@ -101,12 +140,14 @@ namespace SandGameplay.UI {
                     LevelSelected?.Invoke(levelIndex);
                     Hide();
                 });
-
-                _spawnedButtons.Add(btn);
             }
         }
 
         private void Awake() {
+            if (buttonsRoot == null && playButton != null) {
+                buttonsRoot = playButton.transform.parent != null ? playButton.transform.parent.gameObject : null;
+            }
+
             if (titleTransform != null) {
                 _titleOrigin = titleTransform.anchoredPosition;
             }
@@ -159,6 +200,9 @@ namespace SandGameplay.UI {
             if (Audio.AudioManager.Instance != null) {
                 Audio.AudioManager.Instance.PlayUiClick();
             }
+            if (buttonsRoot != null) {
+                buttonsRoot.SetActive(false);
+            }
             if (levelSelectPanel != null) {
                 levelSelectPanel.SetActive(true);
             }
@@ -170,6 +214,9 @@ namespace SandGameplay.UI {
             }
             if (levelSelectPanel != null) {
                 levelSelectPanel.SetActive(false);
+            }
+            if (buttonsRoot != null) {
+                buttonsRoot.SetActive(true);
             }
         }
     }
