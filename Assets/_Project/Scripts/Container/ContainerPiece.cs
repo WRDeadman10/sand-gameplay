@@ -308,7 +308,7 @@ namespace SandGameplay.Container {
         private bool CollidesWithOtherContainers(Rect candidateRect) {
             const float epsilon = 0.02f;
             for (int i = 0; i < ActiveContainers.Count; i++) {
-                var other = ActiveContainers[i];
+                ContainerPiece other = ActiveContainers[i];
                 if (other == null || other == this || !other.gameObject.activeSelf) {
                     continue;
                 }

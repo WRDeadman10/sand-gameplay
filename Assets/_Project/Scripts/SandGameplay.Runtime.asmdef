@@ -1,10 +1,11 @@
-﻿{
+{
 	"name": "SandGameplay.Runtime",
 	"rootNamespace": "SandGameplay",
 	"references": [
 		"Unity.InputSystem",
 		"Unity.TextMeshPro",
-		"UnityEngine.UI"
+		"UnityEngine.UI",
+		"DOTween.Modules"
 	],
 	"includePlatforms": [],
 	"excludePlatforms": [],

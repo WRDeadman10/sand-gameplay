@@ -1,5 +1,7 @@
 using System;
 
+using DG.Tweening;
+
 using SandGameplay.Audio;
 
 using TMPro;
@@ -11,11 +13,13 @@ namespace SandGameplay.UI {
     /// <summary>
     /// Settings modal: controls BGM and SFX volume and mute states.
     /// Can be opened from MainMenu or during gameplay from PauseView.
+    /// Uses smooth DOTween animations for transitions.
     /// </summary>
     public sealed class SettingsView : MonoBehaviour {
         [Header("Root")]
         [SerializeField] private GameObject contentRoot;
         [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private RectTransform cardTransform;
 
         [Header("Music Controls")]
         [SerializeField] private Slider musicSlider;
@@ -33,41 +37,89 @@ namespace SandGameplay.UI {
         [SerializeField] private Button closeButton;
 
         private Action _onCloseCallback;
+        private bool _isOpen;
         private bool _isUpdatingUi;
+        private Tween _fadeTween;
+        private Tween _scaleTween;
 
-        public bool IsOpen => canvasGroup != null ? (canvasGroup.alpha > 0.01f && canvasGroup.blocksRaycasts) : (contentRoot != null && contentRoot.activeSelf);
+        public bool IsOpen {
+            get {
+                return _isOpen;
+            }
+        }
 
         public void Show(Action onClose = null) {
             _onCloseCallback = onClose;
+            KillTweens();
+            _isOpen = true;
 
             if (contentRoot != null && contentRoot != gameObject) {
                 contentRoot.SetActive(true);
             }
+
+            if (cardTransform == null && transform.childCount > 1) {
+                cardTransform = transform.Find("Card") as RectTransform;
+            }
+
+            if (cardTransform != null) {
+                cardTransform.localScale = Vector3.one * 0.72f;
+                _scaleTween = cardTransform.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
+            }
+
             if (canvasGroup != null) {
-                canvasGroup.alpha = 1f;
+                canvasGroup.alpha = 0f;
                 canvasGroup.interactable = true;
                 canvasGroup.blocksRaycasts = true;
+                _fadeTween = canvasGroup.DOFade(1f, 0.24f).SetUpdate(true);
             }
 
             SyncUI();
         }
 
         public void Hide() {
+            KillTweens();
+
+            if (cardTransform == null && transform.childCount > 1) {
+                cardTransform = transform.Find("Card") as RectTransform;
+            }
+
+            if (canvasGroup != null) {
+                canvasGroup.interactable = false;
+                canvasGroup.blocksRaycasts = false;
+                _fadeTween = canvasGroup.DOFade(0f, 0.2f).SetUpdate(true);
+            }
+
+            if (cardTransform != null) {
+                _scaleTween = cardTransform.DOScale(Vector3.one * 0.75f, 0.2f).SetEase(Ease.InBack).SetUpdate(true).OnComplete(HandleHideComplete);
+            } else {
+                HandleHideComplete();
+            }
+        }
+
+        public void HideImmediate() {
+            KillTweens();
+            _isOpen = false;
             if (canvasGroup != null) {
                 canvasGroup.alpha = 0f;
                 canvasGroup.interactable = false;
                 canvasGroup.blocksRaycasts = false;
             }
+            if (cardTransform != null) {
+                cardTransform.localScale = Vector3.one;
+            }
             if (contentRoot != null && contentRoot != gameObject) {
                 contentRoot.SetActive(false);
             }
-
-            Action callback = _onCloseCallback;
-            _onCloseCallback = null;
-            callback?.Invoke();
         }
 
         private void Awake() {
+            if (cardTransform == null) {
+                Transform foundCard = transform.Find("Card");
+                if (foundCard != null) {
+                    cardTransform = foundCard as RectTransform;
+                }
+            }
+
             if (closeButton != null) {
                 closeButton.onClick.AddListener(HandleCloseClicked);
             }
@@ -92,10 +144,12 @@ namespace SandGameplay.UI {
                 AudioManager.Instance.SettingsChanged += SyncUI;
             }
 
-            Hide();
+            HideImmediate();
         }
 
         private void OnDestroy() {
+            KillTweens();
+
             if (closeButton != null) {
                 closeButton.onClick.RemoveListener(HandleCloseClicked);
             }
@@ -114,6 +168,26 @@ namespace SandGameplay.UI {
             if (AudioManager.Instance != null) {
                 AudioManager.Instance.SettingsChanged -= SyncUI;
             }
+        }
+
+        private void KillTweens() {
+            if (_fadeTween != null && _fadeTween.IsActive()) {
+                _fadeTween.Kill();
+            }
+            if (_scaleTween != null && _scaleTween.IsActive()) {
+                _scaleTween.Kill();
+            }
+        }
+
+        private void HandleHideComplete() {
+            _isOpen = false;
+            if (contentRoot != null && contentRoot != gameObject) {
+                contentRoot.SetActive(false);
+            }
+
+            Action callback = _onCloseCallback;
+            _onCloseCallback = null;
+            callback?.Invoke();
         }
 
         private void SyncUI() {
@@ -163,7 +237,7 @@ namespace SandGameplay.UI {
 
         private void HandleMusicToggleClicked() {
             if (AudioManager.Instance != null) {
-                AudioManager.Instance.PlayUiClick();
+                AudioManager.Instance.PlayButtonClick();
                 AudioManager.Instance.ToggleMusicMuted();
                 SyncUI();
             }
@@ -182,7 +256,7 @@ namespace SandGameplay.UI {
 
         private void HandleSfxToggleClicked() {
             if (AudioManager.Instance != null) {
-                AudioManager.Instance.PlayUiClick();
+                AudioManager.Instance.PlayButtonClick();
                 AudioManager.Instance.ToggleSfxMuted();
                 SyncUI();
             }
@@ -190,7 +264,7 @@ namespace SandGameplay.UI {
 
         private void HandleCloseClicked() {
             if (AudioManager.Instance != null) {
-                AudioManager.Instance.PlayUiClick();
+                AudioManager.Instance.PlayButtonClick();
             }
             Hide();
         }

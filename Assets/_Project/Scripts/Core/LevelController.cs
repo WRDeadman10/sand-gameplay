@@ -305,9 +305,9 @@ namespace SandGameplay.Core {
             _spawnedClones.Clear();
             _activeContainers.Clear();
 
-            var defs = _currentLevel.Containers;
-            var colorTotals = new Dictionary<int, int>();
-            var boxesPerColor = new Dictionary<int, int>();
+            System.Collections.Generic.IReadOnlyList<SandGameplay.Data.ContainerDefinition> defs = _currentLevel.Containers;
+            Dictionary<int, int> colorTotals = new Dictionary<int, int>();
+            Dictionary<int, int> boxesPerColor = new Dictionary<int, int>();
             for (int i = 0; i < defs.Count; i++) {
                 int cid = defs[i].colorId;
                 if (!colorTotals.ContainsKey(cid)) {
@@ -319,7 +319,7 @@ namespace SandGameplay.Core {
             ContainerPiece template = container;
 
             for (int i = 0; i < defs.Count; i++) {
-                var def = defs[i];
+                SandGameplay.Data.ContainerDefinition def = defs[i];
                 ContainerPiece piece;
                 if (i == 0 && container != null) {
                     piece = container;

@@ -54,7 +54,7 @@ namespace SandGameplay.Simulation {
 
             if (transferEnabled && containers != null) {
                 for (int i = 0; i < containers.Count; i++) {
-                    var c = containers[i];
+                    ContainerPiece c = containers[i];
                     if (c == null || !c.gameObject.activeSelf || !c.IsDocked || c.Logic.IsComplete || c.Queue == null) {
                         continue;
                     }

@@ -36,6 +36,13 @@
 | [D-027](#d-027) | `InputSystem_Actions.inputactions` keeps its existing format | ✅ Accepted |
 | [D-028](#d-028) | Editor test setup: Mobile quality, S21 Game view, run-in-background | ✅ Accepted |
 | [D-029](#d-029) | MCP's Roslyn DLLs in `Assets/Plugins/Roslyn` are enabled for all platforms | ⏸ Pending user (recommend Editor-only before M7) |
+| [D-030](#d-030) | Multi-container dynamic pooling and color partitioning | ✅ Accepted |
+| [D-031](#d-031) | 50 handcrafted levels matching `gpay.mp4` with automated collision audit | ✅ Accepted |
+| [D-032](#d-032) | Main Menu & Scrollable Level Select with clearance progress | ✅ Accepted |
+| [D-033](#d-033) | Procedural cute background music & audio settings persistence | ✅ Accepted |
+| [D-034](#d-034) | In-game pause freeze architecture and universal settings modal | ✅ Accepted |
+| [D-035](#d-035) | Complete Audio Suite: Box Pick, Drop, Drag Loop, Button Press, and Cozy Melody | ✅ Accepted |
+| [D-036](#d-036) | DOTween UI Modernization, 25% Portrait Scale Increase, and Layout Collision Fixes | ✅ Accepted |
 
 ---
 
@@ -393,3 +400,42 @@
   - Created `PauseView` modal with Resume, Restart, Settings, and Main Menu actions.
   - Created `SettingsView` modal accessible from both Main Menu and Pause modal, featuring volume sliders and ON/OFF mute buttons for Music and SFX.
 - **Consequences:** Complete player control over game flow and audio settings at any time without resetting game state.
+
+<a id="d-035"></a>
+## D-035 — Complete Audio Suite: Box Pick, Drop, Drag Loop, Button Press, and Cozy Melody
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:** The gameplay feel lacked tactile feedback when grabbing, dragging, and releasing sand containers, and UI button presses lacked acoustic juice. Additionally, the user requested fresh, cute background music.
+- **Decision:**
+  - Procedurally synthesized full WAV audio assets:
+    - `sfx_pick_box.wav`: cheerful upward pitch pop on container grab.
+    - `sfx_drop_box.wav`: soft, satisfying wooden placement thud on container release.
+    - `sfx_drag_loop.wav`: gentle rolling friction rumble looping during container dragging.
+    - `sfx_button_press.wav`: crisp, juicy click for all UI buttons.
+    - `bgm_cute_loop.wav`: fresh, cheerful G-major cozy melody with glockenspiel, ukulele, upright bass, and shakers.
+  - Upgraded `AudioManager.cs` with `pickBoxClip`, `dropBoxClip`, `dragLoopClip`, `buttonPressClip`, dedicated loop audio sources, and methods `PlayPickBox()`, `PlayDropBox()`, `SetDragging(bool)`, and `PlayButtonClick()`.
+  - Wired `ContainerDragController.cs` to trigger pick on grab, drag loop while moving, and drop thud on release.
+- **Consequences:** Highly responsive tactile and acoustic feedback for all core puzzle interactions.
+
+<a id="d-036"></a>
+## D-036 — DOTween UI Modernization, 25% Portrait Scale Increase, and Layout Collision Fixes
+
+- **Date:** 2026-10-07 · **Status:** ✅ Accepted
+- **Context:**
+  - Header text on longer level names ("Level 35 - Sakura Blossom") collided into Pause (top-left) and Restart (top-right) buttons.
+  - Gameplay hint ("Drag the box under the sand!") overlapped bottom-row sand containers.
+  - UI modals and fonts were undersized for portrait mobile devices (e.g. 1080×2400).
+  - UI screens transitioned abruptly with `SetActive(true/false)` instead of smooth animated tweens.
+- **Decision:**
+  - Replaced abrupt `SetActive` toggles with DOTween (`DG.Tweening`):
+    - `UIButtonJuice`: pointer down/up scale response + click punch scale animation (`transform.DOPunchScale`) on all buttons.
+    - `PauseView`: canvasGroup fade and card scale punch (`Ease.OutBack` entrance, `Ease.InBack` exit).
+    - `SettingsView`: canvasGroup fade and card scale punch (`Ease.OutBack` entrance, `Ease.InBack` exit).
+    - `MainMenuView`: title bounce, main buttons punch entrance, and `LevelSelectPanel` scale/fade transitions.
+    - `LevelCompleteView`: DOTween fade, title pop, and button pulse.
+  - Increased size/scale by 25% for PauseModal card (`675×775`), SettingsModal card (`700×775`), MainMenu title (`650×150`) & buttons (`450×320`), and LevelSelectPanel (`675×920`, grid cells `106×106`).
+  - Fixed HUD collisions:
+    - LevelLabel: width constrained to 640px (well within 720px gap), with TextMeshPro auto-sizing (22–44 pt) and ellipsis overflow.
+    - Hint: positioned at bottom margin (`y = 75`), completely below sand containers.
+- **Consequences:** Clean, professional portrait UI layout with rich tactile juice and smooth transitions.
+

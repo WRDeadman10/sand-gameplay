@@ -18,6 +18,7 @@
 | M7 Performance & Android | 6 | 1.0 | ◐ Pause state implemented; device profiling pending |
 | M8 Deliverables | 6 | 1.5 | ◐ README written; APK, video, zip pending |
 | M9 50 Levels, UI & Audio | 8 | 8 | ☑ 50 levels, Main Menu, Level Select, Pause, Settings, BGM |
+| M10 UI Modernization, DOTween & SFX Suite | 6 | 6 | ☑ SFX suite, DOTween everywhere, 25% scale, portrait layout fixes |
 
 ## Planning
 
@@ -153,3 +154,15 @@
 | T9.6 | Cute background music synthesis & manager | 36s seamless looping cozy BGM (`bgm_cute_loop.wav`); looping AudioSource in `AudioManager` | ☑ |
 | T9.7 | In-game pause button & pause modal | `HudView` pause button, `PauseView` modal (Resume, Restart, Settings, Main Menu), simulation/drag freeze | ☑ |
 | T9.8 | Audio settings modal | `SettingsView` modal with Music & SFX volume sliders + mute toggles, PlayerPrefs persistence | ☑ |
+
+## M10 — UI Modernization, DOTween & Interactive Audio Suite
+
+| ID | Task | Result | Status |
+|---|---|---|---|
+| T10.1 | Pick, drop, drag, button SFX synthesis | `sfx_pick_box.wav`, `sfx_drop_box.wav`, `sfx_drag_loop.wav`, `sfx_button_press.wav` synthesized | ☑ |
+| T10.2 | Audio integration in controller & manager | `AudioManager` and `ContainerDragController` play pick, drop, drag loop, button click | ☑ |
+| T10.3 | Header text & hint overlap fixes | LevelLabel 640px wide with auto-sizing (22-44pt); Hint moved to y=75 below boxes | ☑ |
+| T10.4 | 25% Scale increase for portrait devices | PauseModal card (675x775), SettingsModal card (700x775), MainMenu (650x150, 450x320), LevelSelectPanel (675x920, cells 106x106) | ☑ |
+| T10.5 | Universal DOTween animations | `UIButtonJuice` punch/scale, `PauseView` fade/scale, `SettingsView` fade/scale, `MainMenuView` punch, `LevelCompleteView` fade/scale | ☑ |
+| T10.6 | Fresh cute BGM | Sunny G-major cozy melody (`bgm_cute_loop.wav`) with glockenspiel, ukulele, upright bass, and shakers | ☑ |
+

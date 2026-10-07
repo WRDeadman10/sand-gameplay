@@ -81,9 +81,9 @@ namespace SandGameplay.Interaction {
             Vector2 pointerWorld = ReadPointerWorld();
             _activeContainer = null;
 
-            var all = ContainerPiece.ActiveContainers;
+            System.Collections.Generic.IReadOnlyList<ContainerPiece> all = ContainerPiece.ActiveContainers;
             for (int i = 0; i < all.Count; i++) {
-                var c = all[i];
+                ContainerPiece c = all[i];
                 if (c != null && c.gameObject.activeSelf && c.ContainsPoint(pointerWorld, touchPadding)) {
                     _activeContainer = c;
                     break;
@@ -101,6 +101,11 @@ namespace SandGameplay.Interaction {
             _grabOffset = pointerWorld - _activeContainer.Position;
             _isDragging = true;
             _activeContainer.BeginDrag();
+
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayPickBox();
+                Audio.AudioManager.Instance.SetDragging(true);
+            }
         }
 
         private void EndDrag() {
@@ -109,6 +114,11 @@ namespace SandGameplay.Interaction {
             }
 
             _isDragging = false;
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.SetDragging(false);
+                Audio.AudioManager.Instance.PlayDropBox();
+            }
+
             if (_activeContainer != null) {
                 _activeContainer.EndDrag();
                 _activeContainer = null;
