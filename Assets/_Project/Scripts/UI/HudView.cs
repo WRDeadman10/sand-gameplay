@@ -9,6 +9,7 @@ namespace SandGameplay.UI {
     /// <summary>Top HUD (level title, restart button) and the bobbing gameplay hint.</summary>
     public sealed class HudView : MonoBehaviour {
         [SerializeField] private Button restartButton;
+        [SerializeField] private Button pauseButton;
         [SerializeField] private Button menuButton;
         [SerializeField] private TMP_Text levelLabel;
         [SerializeField] private CanvasGroup hintGroup;
@@ -21,6 +22,7 @@ namespace SandGameplay.UI {
         private float _hintTargetAlpha;
 
         public event Action RestartRequested;
+        public event Action PauseRequested;
         public event Action MenuRequested;
 
         public void SetLevelName(string displayName) {
@@ -45,6 +47,9 @@ namespace SandGameplay.UI {
             _hintRestPosition = hintRect.anchoredPosition;
             hintGroup.alpha = 0f;
             restartButton.onClick.AddListener(HandleRestartClicked);
+            if (pauseButton != null) {
+                pauseButton.onClick.AddListener(HandlePauseClicked);
+            }
             if (menuButton != null) {
                 menuButton.onClick.AddListener(HandleMenuClicked);
             }
@@ -53,6 +58,9 @@ namespace SandGameplay.UI {
         private void OnDestroy() {
             if (restartButton != null) {
                 restartButton.onClick.RemoveListener(HandleRestartClicked);
+            }
+            if (pauseButton != null) {
+                pauseButton.onClick.RemoveListener(HandlePauseClicked);
             }
             if (menuButton != null) {
                 menuButton.onClick.RemoveListener(HandleMenuClicked);
@@ -73,6 +81,14 @@ namespace SandGameplay.UI {
             }
 
             RestartRequested?.Invoke();
+        }
+
+        private void HandlePauseClicked() {
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayUiClick();
+            }
+
+            PauseRequested?.Invoke();
         }
 
         private void HandleMenuClicked() {

@@ -36,6 +36,8 @@ namespace SandGameplay.Core {
         [SerializeField] private HudView hud;
         [SerializeField] private LevelCompleteView levelCompleteView;
         [SerializeField] private MainMenuView mainMenuView;
+        [SerializeField] private PauseView pauseView;
+        [SerializeField] private SettingsView settingsView;
 
         [Header("Settings")]
         [SerializeField, Range(30, 120)] private int targetFrameRate = 60;
@@ -133,23 +135,92 @@ namespace SandGameplay.Core {
 
         private void OnEnable() {
             hud.RestartRequested += Restart;
+            hud.PauseRequested += PauseLevel;
             hud.MenuRequested += OpenMenu;
             levelCompleteView.PlayAgainRequested += Restart;
             levelCompleteView.NextLevelRequested += NextLevel;
             if (mainMenuView != null) {
                 mainMenuView.PlayClicked += Restart;
                 mainMenuView.LevelSelected += LoadLevel;
+                mainMenuView.SettingsRequested += OpenSettingsFromMenu;
+            }
+            if (pauseView != null) {
+                pauseView.ResumeRequested += ResumeLevel;
+                pauseView.RestartRequested += RestartFromPause;
+                pauseView.SettingsRequested += OpenSettingsFromPause;
+                pauseView.MenuRequested += OpenMenuFromPause;
             }
         }
 
         private void OnDisable() {
             hud.RestartRequested -= Restart;
+            hud.PauseRequested -= PauseLevel;
             hud.MenuRequested -= OpenMenu;
             levelCompleteView.PlayAgainRequested -= Restart;
             levelCompleteView.NextLevelRequested -= NextLevel;
             if (mainMenuView != null) {
                 mainMenuView.PlayClicked -= Restart;
                 mainMenuView.LevelSelected -= LoadLevel;
+                mainMenuView.SettingsRequested -= OpenSettingsFromMenu;
+            }
+            if (pauseView != null) {
+                pauseView.ResumeRequested -= ResumeLevel;
+                pauseView.RestartRequested -= RestartFromPause;
+                pauseView.SettingsRequested -= OpenSettingsFromPause;
+                pauseView.MenuRequested -= OpenMenuFromPause;
+            }
+        }
+
+        public void PauseLevel() {
+            if (State != LevelState.Playing) {
+                return;
+            }
+
+            State = LevelState.Paused;
+            simulationRunner.SetTransferEnabled(false);
+            dragController.SetInputEnabled(false);
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.SetPouring(false);
+            }
+            if (pauseView != null) {
+                pauseView.Show();
+            }
+        }
+
+        public void ResumeLevel() {
+            if (State != LevelState.Paused) {
+                return;
+            }
+
+            if (pauseView != null) {
+                pauseView.Hide();
+            }
+            EnterPlaying();
+        }
+
+        private void RestartFromPause() {
+            if (pauseView != null) {
+                pauseView.Hide();
+            }
+            Restart();
+        }
+
+        private void OpenMenuFromPause() {
+            if (pauseView != null) {
+                pauseView.Hide();
+            }
+            OpenMenu();
+        }
+
+        private void OpenSettingsFromMenu() {
+            if (settingsView != null) {
+                settingsView.Show();
+            }
+        }
+
+        private void OpenSettingsFromPause() {
+            if (settingsView != null) {
+                settingsView.Show();
             }
         }
 
@@ -180,6 +251,12 @@ namespace SandGameplay.Core {
             }
             if (mainMenuView != null) {
                 mainMenuView.Hide();
+            }
+            if (pauseView != null) {
+                pauseView.Hide();
+            }
+            if (settingsView != null) {
+                settingsView.Hide();
             }
             if (Audio.AudioManager.Instance != null) {
                 Audio.AudioManager.Instance.SetPouring(false);

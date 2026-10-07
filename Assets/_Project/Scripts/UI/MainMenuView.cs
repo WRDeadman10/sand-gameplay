@@ -21,6 +21,7 @@ namespace SandGameplay.UI {
         [SerializeField] private GameObject buttonsRoot;
         [SerializeField] private Button playButton;
         [SerializeField] private Button levelSelectButton;
+        [SerializeField] private Button settingsButton;
         [SerializeField] private Button closeSelectButton;
 
         [Header("Level Select Panel")]
@@ -38,6 +39,7 @@ namespace SandGameplay.UI {
 
         public event Action PlayClicked;
         public event Action<int> LevelSelected;
+        public event Action SettingsRequested;
 
         public bool IsOpen => menuRoot != null && menuRoot.activeSelf;
 
@@ -160,6 +162,10 @@ namespace SandGameplay.UI {
                 levelSelectButton.onClick.AddListener(HandleOpenLevelSelect);
             }
 
+            if (settingsButton != null) {
+                settingsButton.onClick.AddListener(HandleSettingsClicked);
+            }
+
             if (closeSelectButton != null) {
                 closeSelectButton.onClick.AddListener(HandleCloseLevelSelect);
             }
@@ -175,6 +181,9 @@ namespace SandGameplay.UI {
             }
             if (levelSelectButton != null) {
                 levelSelectButton.onClick.RemoveListener(HandleOpenLevelSelect);
+            }
+            if (settingsButton != null) {
+                settingsButton.onClick.RemoveListener(HandleSettingsClicked);
             }
             if (closeSelectButton != null) {
                 closeSelectButton.onClick.RemoveListener(HandleCloseLevelSelect);
@@ -206,6 +215,13 @@ namespace SandGameplay.UI {
             if (levelSelectPanel != null) {
                 levelSelectPanel.SetActive(true);
             }
+        }
+
+        private void HandleSettingsClicked() {
+            if (Audio.AudioManager.Instance != null) {
+                Audio.AudioManager.Instance.PlayUiClick();
+            }
+            SettingsRequested?.Invoke();
         }
 
         private void HandleCloseLevelSelect() {
